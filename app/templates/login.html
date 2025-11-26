@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Login - Helpdesk{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Login</h1>
+  <form method="post" action="{{ url_for('auth.login') }}" class="form-grid">
+    <label>
+      Username
+      <input type="text" name="username" required>
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" required>
+    </label>
+    <button type="submit" class="button primary">Sign in</button>
+  </form>
+</section>
+{% endblock %}

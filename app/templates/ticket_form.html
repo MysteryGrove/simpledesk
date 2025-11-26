@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block content %}
+  <div class="actions" style="margin-bottom: 1rem;">
+    <a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">&larr; Back to tickets</a>
+  </div>
+
+  <div class="card">
+    <h1>{{ form_title }}</h1>
+    <form method="post" action="{{ form_action }}" class="field-stack">
+      <div class="form-grid">
+        <div>
+          <label>Title
+            <input type="text" name="title" value="{{ ticket.title if ticket else '' }}" required>
+          </label>
+        </div>
+        <div>
+          <label>Priority
+            <select name="priority">
+              {% for priority in priority_options %}
+                <option value="{{ priority }}" {% if ticket and ticket.priority == priority %}selected{% endif %}>{{ priority }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Status
+            <select name="status">
+              {% for status in status_options %}
+                <option value="{{ status }}" {% if ticket and ticket.status == status %}selected{% endif %}>{{ status }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Due date
+            <input type="date" name="due_date" value="{{ ticket.due_date.strftime('%Y-%m-%d') if ticket and ticket.due_date else '' }}">
+          </label>
+        </div>
+        <div>
+          <label>Tags (comma separated)
+            <input type="text" name="tags" value="{{ ticket.tags if ticket else '' }}">
+          </label>
+        </div>
+      </div>
+      <div>
+        <label>Description
+          <textarea name="description" required>{{ ticket.description if ticket else '' }}</textarea>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit">{{ submit_label if submit_label is defined else 'Submit' }}</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

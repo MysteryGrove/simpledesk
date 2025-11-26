@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Tickets{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="actions">
+      <h1>Tickets</h1>
+      <a class="btn" href="{{ url_for('tickets.new_ticket') }}">Create ticket</a>
+    </div>
+
+    <form method="get" class="filters">
+      <div>
+        <label>Status
+          <select name="status">
+            <option value="">Any</option>
+            {% for status in status_options %}
+              <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Priority
+          <select name="priority">
+            <option value="">Any</option>
+            {% for priority in priority_options %}
+              <option value="{{ priority }}" {% if current_priority == priority %}selected{% endif %}>{{ priority }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Search
+          <input type="text" name="search" value="{{ search_term }}" placeholder="Title or description">
+        </label>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="submit">Filter</button>
+      </div>
+    </form>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Due</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+          <tr>
+            <td>{{ ticket.id }}</td>
+            <td><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
+            <td>{{ ticket.status }}</td>
+            <td>{{ ticket.priority }}</td>
+            <td>{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else '-' }}</td>
+            <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6">No tickets found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
