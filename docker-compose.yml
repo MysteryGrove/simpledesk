@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  web:
+    image: simpledesk:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8080:8000"
+    environment:
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: change_me
+      SECRET_KEY: change_this_secret
+      APP_ENV: production
+    volumes:
+      - helpdesk_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  helpdesk_data:
+    driver: local

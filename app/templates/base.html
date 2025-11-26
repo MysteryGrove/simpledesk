@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Helpdesk{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  {% set is_login = request.endpoint == 'auth.login' %}
+  <header class="topbar{% if is_login %} topbar-compact{% endif %}">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo" class="brand-mark">
+      <span class="brand-text">SimpleDesk</span>
+    </div>
+    {% if not is_login %}
+    <div class="topbar-actions">
+      <nav class="nav-links">
+        <a href="{{ url_for('tickets.list_tickets') }}">All tickets</a>
+        <a href="{{ url_for('tickets.list_tickets') }}?status=open">Open tickets</a>
+        <a href="{{ url_for('tickets.new_ticket') }}" class="button">New ticket</a>
+      </nav>
+      <div class="auth-links">
+        {% if session.get('user_authenticated') %}
+          <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </header>
+
+  <main class="container{% if is_login %} auth-page{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

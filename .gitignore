@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.env.local
+venv/
+.venv/
+
+# SQLite database files
+/data/helpdesk.db
+/data/*.db
