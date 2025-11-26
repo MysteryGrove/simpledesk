@@ -7,8 +7,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <header class="topbar">
+  {% set is_login = request.endpoint == 'auth.login' %}
+  <header class="topbar{% if is_login %} topbar-compact{% endif %}">
     <div class="brand">SimpleDesk</div>
+    {% if not is_login %}
     <div class="topbar-actions">
       <nav class="nav-links">
         <a href="{{ url_for('tickets.list_tickets') }}">All tickets</a>
@@ -23,9 +25,10 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
   </header>
 
-  <main class="container">
+  <main class="container{% if is_login %} auth-page{% endif %}">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">

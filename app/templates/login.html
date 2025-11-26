@@ -1,18 +1,19 @@
 {% extends 'base.html' %}
 {% block title %}Login - Helpdesk{% endblock %}
 {% block content %}
-<section class="card">
-  <h1>Login</h1>
-  <form method="post" action="{{ url_for('auth.login') }}" class="form-grid">
-    <label>
-      Username
-      <input type="text" name="username" required>
-    </label>
-    <label>
-      Password
-      <input type="password" name="password" required>
-    </label>
-    <button type="submit" class="button primary">Sign in</button>
+<section class="card auth-card">
+  <div class="auth-header">
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to manage your helpdesk tickets.</p>
+  </div>
+  <form method="post" action="{{ url_for('auth.login') }}" class="auth-form">
+    <label for="username">Username</label>
+    <input id="username" type="text" name="username" required autocomplete="username">
+
+    <label for="password">Password</label>
+    <input id="password" type="password" name="password" required autocomplete="current-password">
+
+    <button type="submit" class="button primary auth-submit">Sign in</button>
   </form>
 </section>
 {% endblock %}
