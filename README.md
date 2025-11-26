@@ -9,5 +9,5 @@ From the repository root (where `docker-compose.yml` and `Dockerfile` reside):
 docker compose up --build
 ```
 
-The stack builds using the Dockerfile in this directory and serves the app on http://localhost:8080.
+Compose builds an image tagged `simpledesk:latest` from the local Dockerfile and serves the app on http://localhost:8080.
 Data is persisted in the `helpdesk_data` volume mounted at `/app/data` inside the container.
