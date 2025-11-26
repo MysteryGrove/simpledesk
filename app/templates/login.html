@@ -1,19 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}Login - Helpdesk{% endblock %}
 {% block content %}
-<section class="card auth-card">
-  <div class="auth-header">
-    <h1>Welcome back</h1>
-    <p class="muted">Sign in to manage your helpdesk tickets.</p>
+<div class="auth-layout">
+  <div class="auth-logo">
+    <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo">
   </div>
-  <form method="post" action="{{ url_for('auth.login') }}" class="auth-form">
-    <label for="username">Username</label>
-    <input id="username" type="text" name="username" required autocomplete="username">
+  <section class="card auth-card">
+    <div class="auth-header">
+      <h1>Welcome back</h1>
+      <p class="muted">Sign in to manage your helpdesk tickets.</p>
+    </div>
+    <form method="post" action="{{ url_for('auth.login') }}" class="auth-form">
+      <label for="username">Username</label>
+      <input id="username" type="text" name="username" required autocomplete="username" placeholder="Enter your username">
 
-    <label for="password">Password</label>
-    <input id="password" type="password" name="password" required autocomplete="current-password">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
 
-    <button type="submit" class="button primary auth-submit">Sign in</button>
-  </form>
-</section>
+      <button type="submit" class="button primary auth-submit">Sign in</button>
+    </form>
+  </section>
+</div>
 {% endblock %}

@@ -47,6 +47,21 @@ a:hover {
   justify-content: flex-start;
 }
 
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.brand-mark {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
 .nav-links {
   display: flex;
   gap: 0.75rem;
@@ -78,6 +93,20 @@ a:hover {
   padding: 2.5rem 1.25rem;
 }
 
+.auth-layout {
+  width: 100%;
+  max-width: 520px;
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.auth-logo img {
+  height: 90px;
+  width: auto;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.08));
+}
+
 h1, h2, h3 {
   margin: 0 0 0.75rem;
 }
@@ -95,7 +124,7 @@ h1, h2, h3 {
   max-width: 420px;
   margin: 0 auto;
   padding: 2rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
 }
 
 .table {
@@ -147,11 +176,17 @@ input[type="date"],
 select,
 textarea {
   width: 100%;
-  padding: 0.55rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid #d7dce2;
+  border-radius: 10px;
   background: #fff;
   font: inherit;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="password"] {
+  height: 46px;
 }
 
 textarea {
@@ -179,6 +214,7 @@ textarea {
 .auth-submit {
   width: 100%;
   margin-top: 0.25rem;
+  height: 46px;
 }
 
 button,

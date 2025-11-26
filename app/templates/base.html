@@ -9,7 +9,10 @@
 <body>
   {% set is_login = request.endpoint == 'auth.login' %}
   <header class="topbar{% if is_login %} topbar-compact{% endif %}">
-    <div class="brand">SimpleDesk</div>
+    <div class="brand">
+      <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo" class="brand-mark">
+      <span class="brand-text">SimpleDesk</span>
+    </div>
     {% if not is_login %}
     <div class="topbar-actions">
       <nav class="nav-links">

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" role="img" aria-labelledby="title desc">
+  <title id="title">SimpleDesk Logo</title>
+  <desc id="desc">Minimal desk icon with drawers and the text SimpleDesk</desc>
+  <g fill="none" stroke="#3c4a55" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 36h152" />
+    <path d="M36 36v54" />
+    <path d="M164 36v54" />
+    <path d="M116 36v54" />
+    <rect x="124" y="50" width="32" height="40" rx="4" ry="4" />
+    <path d="M124 70h32" />
+  </g>
+  <text x="100" y="110" font-family="'Inter', 'Segoe UI', sans-serif" font-size="26" fill="#3c4a55" text-anchor="middle" font-weight="600">SimpleDesk</text>
+</svg>
