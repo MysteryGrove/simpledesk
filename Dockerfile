@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Ensure directory for SQLite database exists
-RUN mkdir -p /data
+RUN mkdir -p /app/data
 
 # Environment configuration
 ENV FLASK_APP=app.main:create_app \
