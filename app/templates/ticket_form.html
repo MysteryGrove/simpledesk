@@ -37,11 +37,6 @@
             <input type="date" name="due_date" value="{{ ticket.due_date.strftime('%Y-%m-%d') if ticket and ticket.due_date else '' }}">
           </label>
         </div>
-        <div>
-          <label>Tags (comma separated)
-            <input type="text" name="tags" value="{{ ticket.tags if ticket else '' }}">
-          </label>
-        </div>
       </div>
       <div>
         <label>Description

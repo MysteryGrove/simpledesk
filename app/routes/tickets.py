@@ -23,7 +23,7 @@ from app.models import Comment, Ticket
 
 tickets_bp = Blueprint("tickets", __name__, url_prefix="/tickets")
 
-STATUS_OPTIONS = ["open", "in_progress", "blocked", "done", "archived"]
+STATUS_OPTIONS = ["open", "closed", "cancelled"]
 PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"]
 
 
@@ -102,7 +102,6 @@ def create_ticket():
     description = request.form.get("description", "").strip()
     status = request.form.get("status", "open")
     priority = request.form.get("priority", "medium")
-    tags = request.form.get("tags")
     due_date_raw = request.form.get("due_date", "")
 
     if not title or not description:
@@ -124,7 +123,6 @@ def create_ticket():
         description=description,
         status=status,
         priority=priority,
-        tags=tags or None,
         due_date=due_date,
     )
     session.add(ticket)
@@ -185,7 +183,6 @@ def update_ticket(ticket_id: int):
     description = request.form.get("description", "").strip()
     status = request.form.get("status", ticket.status)
     priority = request.form.get("priority", ticket.priority)
-    tags = request.form.get("tags")
     due_date_raw = request.form.get("due_date", "")
 
     if not title or not description:
@@ -196,7 +193,6 @@ def update_ticket(ticket_id: int):
     ticket.description = description
     ticket.status = status if status in STATUS_OPTIONS else ticket.status
     ticket.priority = priority if priority in PRIORITY_OPTIONS else ticket.priority
-    ticket.tags = tags or None
 
     due_date = _parse_due_date(due_date_raw)
     if due_date_raw and due_date is None:

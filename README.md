@@ -29,13 +29,13 @@ Compose builds an image tagged `simpledesk:latest` from the local Dockerfile and
    - Use the credentials baked into `docker-compose.yml` (default `admin` / `change_me`).
 
 3. **Create and view a ticket**
-   - Click "New ticket" and submit a title/description (tags/due date optional).
+   - Click "New ticket" and submit a title/description (due date optional).
    - You should be redirected to the ticket detail page with a success flash.
    - Return to "All tickets" to confirm the new entry appears in the list.
 
 4. **Edit and update status**
    - From the ticket detail, click "Edit" to change fields and save.
-   - Use the status dropdown to move the ticket through `open`, `in_progress`, `blocked`, `done`, or `archived`; a flash message should confirm updates.
+   - Use the status dropdown to move the ticket through `open`, `closed`, or `cancelled`; a flash message should confirm updates.
 
 5. **Add a comment**
    - On the ticket detail page, submit a comment in the textarea.

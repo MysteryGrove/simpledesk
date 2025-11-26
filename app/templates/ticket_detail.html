@@ -13,7 +13,6 @@
     <div class="meta-grid">
       <div class="meta-item"><strong>Status:</strong><br>{{ ticket.status }}</div>
       <div class="meta-item"><strong>Priority:</strong><br>{{ ticket.priority }}</div>
-      <div class="meta-item"><strong>Tags:</strong><br>{{ ticket.tags or '-' }}</div>
       <div class="meta-item"><strong>Due date:</strong><br>{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else '-' }}</div>
       <div class="meta-item"><strong>Created:</strong><br>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
       <div class="meta-item"><strong>Updated:</strong><br>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</div>
