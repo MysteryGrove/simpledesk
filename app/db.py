@@ -64,3 +64,16 @@ def rebuild_engine() -> None:
         connect_args={"check_same_thread": False},
     )
     SessionLocal.configure(bind=engine)
+
+
+def reset_database_state() -> None:
+    """Completely rebuild the database to ensure no stale state lingers."""
+
+    SessionLocal.remove()
+    # Clear any remaining scoped sessions so stale identity maps cannot serve
+    # outdated ticket data after an account reset.
+    SessionLocal.registry.clear()
+    engine.dispose()
+    reset_data_dir()
+    rebuild_engine()
+    init_db()

@@ -4,7 +4,7 @@ from __future__ import annotations
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
-from app.db import DATA_DIR, SessionLocal, engine, init_db, rebuild_engine, reset_data_dir
+from app.db import reset_database_state
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
@@ -140,13 +140,8 @@ def reset_account():
         flash("Password did not match. Account was not reset.", "error")
         return redirect(url_for("settings.view_settings"))
 
-    SessionLocal.remove()
-    engine.dispose()
-
-    reset_data_dir()
-    rebuild_engine()
+    reset_database_state()
     reset_credentials()
-    init_db()
     session.clear()
     flash("Account reset. Log in with the default admin/password credentials.", "success")
     return redirect(url_for("auth.login"))
