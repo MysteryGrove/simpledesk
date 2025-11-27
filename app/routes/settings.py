@@ -1,7 +1,9 @@
 """Settings page routes."""
 from __future__ import annotations
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
+
+import psutil
 
 from app.auth import reset_credentials, set_password, verify_password
 from app.db import reset_database_state
@@ -35,6 +37,12 @@ SIDEBAR_SECTIONS = [
         "description": "Automation and maintenance",
         "endpoint": "settings.view_system",
     },
+    {
+        "id": "about",
+        "title": "About",
+        "description": "Version details and diagnostics",
+        "endpoint": "settings.view_about",
+    },
 ]
 
 SECTION_CONTENT = {
@@ -60,6 +68,11 @@ SECTION_CONTENT = {
         "panel_title": "System",
         "panel_description": "Configure automation, uptime controls, and integrations once they're available.",
         "coming_soon_detail": "We're preparing system management tools to help you automate and maintain SimpleDesk.",
+    },
+    "about": {
+        "hero_description": HERO_DESCRIPTION,
+        "panel_title": "About SimpleDesk",
+        "panel_description": "See version details, credits, and live service resource usage.",
     },
 }
 
@@ -105,6 +118,26 @@ def view_appearance():
 def view_system():
     """Render the system settings page."""
     return _render_settings_page("system")
+
+
+@settings_bp.route("/about", methods=["GET"])
+def view_about():
+    """Render the about settings page."""
+    return _render_settings_page("about")
+
+
+@settings_bp.route("/stats", methods=["GET"])
+def service_stats():
+    """Return live CPU and memory usage for the SimpleDesk service."""
+
+    process = psutil.Process()
+    cpu_percent = process.cpu_percent(interval=0.1)
+    memory_mb = process.memory_info().rss / (1024 * 1024)
+
+    return jsonify({
+        "cpu_percent": round(cpu_percent, 2),
+        "memory_mb": round(memory_mb, 2),
+    })
 
 
 @settings_bp.route("/change-password", methods=["POST"])

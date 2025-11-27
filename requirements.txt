@@ -3,3 +3,4 @@ SQLAlchemy~=2.0.29
 python-dotenv~=1.0.1
 gunicorn~=22.0.0
 gevent~=24.2.1
+psutil~=5.9.8
