@@ -21,5 +21,5 @@ ENV FLASK_APP=app.main:create_app \
 # Expose application port
 EXPOSE 8000
 
-# Run the app with Gunicorn using the factory
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "app.main:create_app()"]
+# Run the app with Gunicorn using the factory and configuration
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "-b", "0.0.0.0:8000", "app.main:create_app()"]
