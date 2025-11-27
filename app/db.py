@@ -1,6 +1,7 @@
 """Database setup utilities for the helpdesk application."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -8,8 +9,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Session, declarative_ba
 
 # Base directory of the project (one level above this file's directory)
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATABASE_URL = f"sqlite:///{DATA_DIR / 'helpdesk.db'}"
 
 # SQLAlchemy base and engine configuration
