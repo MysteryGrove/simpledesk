@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from app.auth import reset_credentials, set_password
+from app.auth import reset_credentials, set_password, verify_password
 from app.db import DATA_DIR, SessionLocal, init_db, engine
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
@@ -128,6 +128,16 @@ def change_password():
 @settings_bp.route("/reset-account", methods=["POST"])
 def reset_account():
     """Reset the account by wiping data and credentials."""
+
+    password = request.form.get("reset_password", "").strip()
+
+    if not password:
+        flash("Please enter your password to confirm the reset.", "error")
+        return redirect(url_for("settings.view_settings"))
+
+    if not verify_password(password):
+        flash("Password did not match. Account was not reset.", "error")
+        return redirect(url_for("settings.view_settings"))
 
     SessionLocal.remove()
     engine.dispose()

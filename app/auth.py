@@ -62,6 +62,13 @@ def set_password(new_password: str) -> tuple[str, str]:
     return _write_credentials(username, new_password)
 
 
+def verify_password(password: str) -> bool:
+    """Check whether the provided password matches the stored credentials."""
+
+    _, current_password = _credentials()
+    return password == current_password
+
+
 def reset_credentials() -> tuple[str, str]:
     """Remove persisted credentials and return the defaults."""
 

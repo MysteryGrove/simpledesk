@@ -68,7 +68,11 @@
             <div class="settings-item-description">Erase tickets, comments, and return credentials to the default admin/password pair.</div>
           </div>
           <form method="post" action="{{ url_for('settings.reset_account') }}" class="settings-form">
-            <p class="muted">This action cannot be undone.</p>
+            <p class="muted">Resetting will wipe all tickets and comments and log you out. Enter your current password to confirm.</p>
+            <div class="form-row">
+              <label for="reset_password">Confirm password</label>
+              <input type="password" id="reset_password" name="reset_password" required>
+            </div>
             <div class="form-actions">
               <button type="submit" class="btn secondary">Reset account</button>
             </div>
