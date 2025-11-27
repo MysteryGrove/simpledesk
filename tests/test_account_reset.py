@@ -5,6 +5,7 @@ import importlib
 import os
 import sys
 import tempfile
+import threading
 import unittest
 
 
@@ -80,6 +81,61 @@ class AccountResetTestCase(unittest.TestCase):
         self.session.close()
         self.session = self.db.get_session()
         ticket_count = self.session.query(self.models.Ticket).count()
+        self.assertEqual(ticket_count, 0)
+
+    def test_reset_account_clears_existing_sessions(self) -> None:
+        """Resetting should invalidate any stale sessions holding ticket data."""
+
+        ready = threading.Event()
+        proceed = threading.Event()
+        results: dict[str, object] = {}
+
+        def create_ticket_in_thread() -> None:
+            worker_session = self.db.get_session()
+            ticket = self.models.Ticket(
+                title="Threaded Ticket",
+                description="Created in background thread",
+                status="open",
+                priority="medium",
+            )
+            worker_session.add(ticket)
+            worker_session.commit()
+            results["worker_session"] = worker_session
+            ready.set()
+            proceed.wait()
+            try:
+                results["count_after_reset"] = worker_session.query(self.models.Ticket).count()
+            except Exception as exc:  # pragma: no cover - defensive capture
+                results["error"] = exc
+            finally:
+                worker_session.close()
+
+        thread = threading.Thread(target=create_ticket_in_thread)
+        thread.start()
+        ready.wait()
+
+        with self.client.session_transaction() as flask_session:
+            flask_session["user_authenticated"] = True
+
+        response = self.client.post(
+            "/settings/reset-account",
+            data={"reset_password": "change_me"},
+            follow_redirects=False,
+        )
+
+        proceed.set()
+        thread.join()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.headers.get("Location", ""))
+
+        verification_session = self.db.get_session()
+        ticket_count = verification_session.query(self.models.Ticket).count()
+        verification_session.close()
+
+        # The session created before reset should not be able to surface old data
+        # after the reset completes.
+        self.assertNotEqual(results.get("count_after_reset"), 1)
         self.assertEqual(ticket_count, 0)
 
 
