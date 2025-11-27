@@ -1,9 +1,7 @@
 """Settings page routes."""
 from __future__ import annotations
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
-
-import psutil
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
 from app.db import reset_database_state
@@ -72,7 +70,7 @@ SECTION_CONTENT = {
     "about": {
         "hero_description": HERO_DESCRIPTION,
         "panel_title": "About SimpleDesk",
-        "panel_description": "See version details, credits, and live service resource usage.",
+        "panel_description": "See version details and credits for this deployment.",
     },
 }
 
@@ -124,20 +122,6 @@ def view_system():
 def view_about():
     """Render the about settings page."""
     return _render_settings_page("about")
-
-
-@settings_bp.route("/stats", methods=["GET"])
-def service_stats():
-    """Return live CPU and memory usage for the SimpleDesk service."""
-
-    process = psutil.Process()
-    cpu_percent = process.cpu_percent(interval=0.1)
-    memory_mb = process.memory_info().rss / (1024 * 1024)
-
-    return jsonify({
-        "cpu_percent": round(cpu_percent, 2),
-        "memory_mb": round(memory_mb, 2),
-    })
 
 
 @settings_bp.route("/change-password", methods=["POST"])

@@ -1,4 +1,4 @@
-"""Settings about page and service stats tests."""
+"""Settings about page tests."""
 from __future__ import annotations
 
 import importlib
@@ -9,7 +9,7 @@ import unittest
 
 
 class SettingsAboutTestCase(unittest.TestCase):
-    """Validate the settings about page and live stats endpoint."""
+    """Validate the settings about page content."""
 
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -58,23 +58,7 @@ class SettingsAboutTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Version 1.3", response.data)
         self.assertIn(b"MysteryGrove", response.data)
-        self.assertIn(b"Nerd stats", response.data)
         self.assertIn(b"Adjust your SimpleDesk preferences", response.data)
-
-    def test_service_stats_returns_usage_metrics(self) -> None:
-        """The stats endpoint should surface CPU and memory usage."""
-
-        with self.client.session_transaction() as flask_session:
-            flask_session["user_authenticated"] = True
-
-        response = self.client.get("/settings/stats")
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.get_json()
-        self.assertIn("cpu_percent", payload)
-        self.assertIn("memory_mb", payload)
-        self.assertGreaterEqual(payload["cpu_percent"], 0)
-        self.assertGreaterEqual(payload["memory_mb"], 0)
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution

@@ -97,53 +97,7 @@
             </div>
           </div>
         </div>
-
-        <div class="settings-item settings-item-vertical" id="nerd-stats" data-stats-url="{{ url_for('settings.service_stats') }}">
-          <div class="settings-item-header">
-            <div class="settings-item-title">Nerd stats</div>
-            <div class="settings-item-description">Live resource usage for the SimpleDesk service.</div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-block">
-              <p class="eyebrow">CPU usage</p>
-              <p class="stat-value" id="cpu-usage">--%</p>
-            </div>
-            <div class="stat-block">
-              <p class="eyebrow">Memory usage</p>
-              <p class="stat-value" id="memory-usage">-- MB</p>
-            </div>
-          </div>
-          <p class="muted" id="stats-updated">Fetching latest stats…</p>
-        </div>
       </div>
-      <script>
-        (function () {
-          const statsContainer = document.getElementById('nerd-stats');
-          if (!statsContainer) return;
-
-          const statsUrl = statsContainer.dataset.statsUrl;
-          const cpuEl = document.getElementById('cpu-usage');
-          const memoryEl = document.getElementById('memory-usage');
-          const updatedEl = document.getElementById('stats-updated');
-
-          async function updateStats() {
-            try {
-              const response = await fetch(statsUrl, { headers: { 'Accept': 'application/json' } });
-              if (!response.ok) throw new Error('Failed to fetch stats');
-              const payload = await response.json();
-              cpuEl.textContent = `${payload.cpu_percent}%`;
-              memoryEl.textContent = `${payload.memory_mb} MB`;
-              const timestamp = new Date().toLocaleTimeString();
-              updatedEl.textContent = `Updated ${timestamp}`;
-            } catch (err) {
-              updatedEl.textContent = 'Unable to load stats right now.';
-            }
-          }
-
-          updateStats();
-          setInterval(updateStats, 5000);
-        })();
-      </script>
     {% else %}
       <div class="settings-empty card">
         <div class="empty-icon">✨</div>
