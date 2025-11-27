@@ -5,8 +5,8 @@
 <section class="settings-hero">
   <div>
     <p class="eyebrow">Version 1.1</p>
-    <h1>Account Settings</h1>
-    <p class="muted">Adjust your SimpleDesk preferences to keep work flowing smoothly.</p>
+    <h1>Settings</h1>
+    <p class="muted">{{ section_content.hero_description }}</p>
   </div>
 </section>
 
@@ -20,7 +20,7 @@
     </div>
     <nav class="settings-nav">
       {% for section in sections %}
-        <a class="settings-nav-link{% if section.id == active_section %} active{% endif %}" href="#{{ section.id }}">
+        <a class="settings-nav-link{% if section.id == active_section %} active{% endif %}" href="{{ url_for(section.endpoint) }}">
           <div class="nav-text">
             <span class="nav-title">{{ section.title }}</span>
             <span class="nav-subtitle">{{ section.description }}</span>
@@ -35,45 +35,55 @@
     <header class="panel-header">
       <div>
         <p class="eyebrow">Overview</p>
-        <h2>Account controls</h2>
-        <p class="muted">Update your access quickly: change the administrator password or start fresh by resetting the account.</p>
+        <h2>{{ section_content.panel_title }}</h2>
+        <p class="muted">{{ section_content.panel_description }}</p>
       </div>
     </header>
 
-    <div class="settings-list">
-      <div class="settings-item settings-item-vertical" id="change-password">
-        <div class="settings-item-header">
-          <div class="settings-item-title">Change password</div>
-          <div class="settings-item-description">Enter the new password twice to update your administrator credentials.</div>
+    {% if active_section == 'account' %}
+      <div class="settings-list">
+        <div class="settings-item settings-item-vertical" id="change-password">
+          <div class="settings-item-header">
+            <div class="settings-item-title">Change password</div>
+            <div class="settings-item-description">Enter the new password twice to update your administrator credentials.</div>
+          </div>
+          <form method="post" action="{{ url_for('settings.change_password') }}" class="settings-form">
+            <div class="form-row">
+              <label for="new_password">New password</label>
+              <input type="password" id="new_password" name="new_password" required>
+            </div>
+            <div class="form-row">
+              <label for="confirm_password">Confirm new password</label>
+              <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn">Update password</button>
+            </div>
+          </form>
         </div>
-        <form method="post" action="{{ url_for('settings.change_password') }}" class="settings-form">
-          <div class="form-row">
-            <label for="new_password">New password</label>
-            <input type="password" id="new_password" name="new_password" required>
-          </div>
-          <div class="form-row">
-            <label for="confirm_password">Confirm new password</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn">Update password</button>
-          </div>
-        </form>
-      </div>
 
-      <div class="settings-item settings-item-vertical caution" id="reset-account">
-        <div class="settings-item-header">
-          <div class="settings-item-title">Reset account</div>
-          <div class="settings-item-description">Erase tickets, comments, and return credentials to the default admin/password pair.</div>
-        </div>
-        <form method="post" action="{{ url_for('settings.reset_account') }}" class="settings-form">
-          <p class="muted">This action cannot be undone.</p>
-          <div class="form-actions">
-            <button type="submit" class="btn secondary">Reset account</button>
+        <div class="settings-item settings-item-vertical caution" id="reset-account">
+          <div class="settings-item-header">
+            <div class="settings-item-title">Reset account</div>
+            <div class="settings-item-description">Erase tickets, comments, and return credentials to the default admin/password pair.</div>
           </div>
-        </form>
+          <form method="post" action="{{ url_for('settings.reset_account') }}" class="settings-form">
+            <p class="muted">This action cannot be undone.</p>
+            <div class="form-actions">
+              <button type="submit" class="btn secondary">Reset account</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    {% else %}
+      <div class="settings-empty card">
+        <div class="empty-icon">✨</div>
+        <div class="empty-content">
+          <h3>Features coming soon</h3>
+          <p class="muted">{{ section_content.coming_soon_detail }}</p>
+        </div>
+      </div>
+    {% endif %}
   </section>
 </div>
 {% endblock %}

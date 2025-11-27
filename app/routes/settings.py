@@ -8,6 +8,47 @@ from app.db import DATA_DIR, SessionLocal, init_db, engine
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
+SIDEBAR_SECTIONS = [
+    {
+        "id": "account",
+        "title": "Account",
+        "description": "Profile, access, and security",
+        "endpoint": "settings.view_settings",
+    },
+    {
+        "id": "notifications",
+        "title": "Notifications",
+        "description": "Alerts and reminders",
+        "endpoint": "settings.view_notifications",
+    },
+    {
+        "id": "appearance",
+        "title": "Appearance",
+        "description": "Theme and personalization",
+        "endpoint": "settings.view_appearance",
+    },
+]
+
+SECTION_CONTENT = {
+    "account": {
+        "hero_description": "Adjust your SimpleDesk preferences to keep work flowing smoothly.",
+        "panel_title": "Account controls",
+        "panel_description": "Update your access quickly: change the administrator password or start fresh by resetting the account.",
+    },
+    "notifications": {
+        "hero_description": "Stay tuned for smarter alerts to keep you and your team in sync.",
+        "panel_title": "Notifications",
+        "panel_description": "Configure reminders, alerts, and summaries when they become available.",
+        "coming_soon_detail": "We're building granular notification controls so you can choose when and how you're notified.",
+    },
+    "appearance": {
+        "hero_description": "Personalize your workspace with themes and layout preferences.",
+        "panel_title": "Appearance",
+        "panel_description": "Fine-tune colors, density, and other visual settings as they're released.",
+        "coming_soon_detail": "Theme controls are on the way so you can tailor SimpleDesk to your style.",
+    },
+}
+
 
 @settings_bp.before_request
 def require_authentication():
@@ -16,20 +57,34 @@ def require_authentication():
         return redirect(url_for("auth.login"))
 
 
-@settings_bp.route("/", methods=["GET"])
-def view_settings():
-    """Render the settings overview page."""
-    sidebar_sections = [
-        {"id": "account", "title": "Account", "description": "Profile, access, and security"},
-        {"id": "notifications", "title": "Notifications", "description": "Alerts and reminders"},
-        {"id": "appearance", "title": "Appearance", "description": "Theme and personalization"},
-    ]
+def _render_settings_page(active_section: str):
+    """Render the settings page for the selected section."""
+    section_content = SECTION_CONTENT.get(active_section, SECTION_CONTENT["account"])
 
     return render_template(
         "settings.html",
-        sections=sidebar_sections,
-        active_section="account",
+        sections=SIDEBAR_SECTIONS,
+        active_section=active_section,
+        section_content=section_content,
     )
+
+
+@settings_bp.route("/", methods=["GET"])
+def view_settings():
+    """Render the account settings page."""
+    return _render_settings_page("account")
+
+
+@settings_bp.route("/notifications", methods=["GET"])
+def view_notifications():
+    """Render the notifications settings page."""
+    return _render_settings_page("notifications")
+
+
+@settings_bp.route("/appearance", methods=["GET"])
+def view_appearance():
+    """Render the appearance settings page."""
+    return _render_settings_page("appearance")
 
 
 @settings_bp.route("/change-password", methods=["POST"])
