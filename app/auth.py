@@ -16,12 +16,19 @@ auth_bp = Blueprint("auth", __name__)
 
 
 _CREDENTIALS_FILE = DATA_DIR / "credentials.json"
+DEFAULT_USERNAME = "admin"
+DEFAULT_PASSWORD = "change_me"
 
 
 def _using_default_credentials() -> bool:
     """Return True when no custom credentials have been set yet."""
 
-    return _load_persisted_credentials() is None
+    if _load_persisted_credentials() is not None:
+        return False
+
+    username = os.environ.get("ADMIN_USERNAME", DEFAULT_USERNAME)
+    password = os.environ.get("ADMIN_PASSWORD", DEFAULT_PASSWORD)
+    return username == DEFAULT_USERNAME and password == DEFAULT_PASSWORD
 
 
 def _load_persisted_credentials() -> tuple[str, str] | None:
@@ -56,8 +63,8 @@ def _credentials() -> tuple[str, str]:
     if persisted:
         return persisted
 
-    username = os.environ.get("ADMIN_USERNAME", "admin")
-    password = os.environ.get("ADMIN_PASSWORD", "password")
+    username = os.environ.get("ADMIN_USERNAME", DEFAULT_USERNAME)
+    password = os.environ.get("ADMIN_PASSWORD", DEFAULT_PASSWORD)
     return username, password
 
 
