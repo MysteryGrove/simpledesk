@@ -18,6 +18,12 @@ auth_bp = Blueprint("auth", __name__)
 _CREDENTIALS_FILE = DATA_DIR / "credentials.json"
 
 
+def _using_default_credentials() -> bool:
+    """Return True when no custom credentials have been set yet."""
+
+    return _load_persisted_credentials() is None
+
+
 def _load_persisted_credentials() -> tuple[str, str] | None:
     """Read persisted credentials if they exist and are valid."""
 
@@ -106,6 +112,12 @@ def login_post():
 
     if username == username_env and password == password_env:
         session["user_authenticated"] = True
+        session.pop("pending_password_change", None)
+        if _using_default_credentials():
+            session["pending_password_change"] = True
+            flash("Default credentials detected. Please set a new password to continue.", "warning")
+            return redirect(url_for("auth.force_password_change"))
+
         flash("Logged in successfully.", "success")
         return redirect(url_for("tickets.list_tickets"))
 
@@ -119,3 +131,67 @@ def logout():
     session.clear()
     flash("Logged out.", "success")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.before_app_request
+def enforce_password_change():
+    """Redirect authenticated users to change their password when required."""
+
+    endpoint = request.endpoint or ""
+    if not session.get("user_authenticated"):
+        return None
+
+    if not session.get("pending_password_change"):
+        return None
+
+    allowed_endpoints = {
+        "auth.force_password_change",
+        "auth.force_password_change_post",
+        "auth.logout",
+        "static",
+    }
+    if endpoint in allowed_endpoints:
+        return None
+
+    return redirect(url_for("auth.force_password_change"))
+
+
+@auth_bp.route("/force-password-change", methods=["GET"])
+def force_password_change() -> str:
+    """Render the forced password change form for default credentials."""
+
+    if not session.get("user_authenticated"):
+        return redirect(url_for("auth.login"))
+
+    if not session.get("pending_password_change"):
+        return redirect(url_for("tickets.list_tickets"))
+
+    return render_template("force_password_change.html")
+
+
+@auth_bp.route("/force-password-change", methods=["POST"])
+def force_password_change_post():
+    """Handle password update when default credentials are in use."""
+
+    if not session.get("user_authenticated"):
+        return redirect(url_for("auth.login"))
+
+    new_password = request.form.get("new_password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    if not new_password or not confirm_password:
+        flash("Both password fields are required.", "error")
+        return redirect(url_for("auth.force_password_change"))
+
+    if new_password != confirm_password:
+        flash("Passwords must match.", "error")
+        return redirect(url_for("auth.force_password_change"))
+
+    if verify_password(new_password):
+        flash("Please choose a password different from the current default.", "error")
+        return redirect(url_for("auth.force_password_change"))
+
+    set_password(new_password)
+    session.pop("pending_password_change", None)
+    flash("Password updated successfully. You can now continue to SimpleDesk.", "success")
+    return redirect(url_for("tickets.list_tickets"))

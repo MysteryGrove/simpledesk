@@ -121,6 +121,7 @@ def change_password():
         return redirect(url_for("settings.view_settings"))
 
     set_password(new_password)
+    session.pop("pending_password_change", None)
     flash("Password updated successfully.", "success")
     return redirect(url_for("settings.view_settings"))
 
