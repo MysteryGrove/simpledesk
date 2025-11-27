@@ -80,8 +80,8 @@
             <td class="ticket-title"><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
             <td><span class="badge status-{{ ticket.status|lower }}">{{ ticket.status }}</span></td>
             <td><span class="badge priority-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
-            <td>{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else '-' }}</td>
-            <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ ticket.due_date.strftime('%d/%m/%Y') if ticket.due_date else '-' }}</td>
+            <td>{{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
           </tr>
         {% else %}
           <tr>
