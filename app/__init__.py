@@ -7,6 +7,7 @@ from flask import Flask, redirect, session, url_for
 from app.db import DATABASE_URL, SessionLocal, init_db
 from app.auth import auth_bp
 from app.routes.tickets import tickets_bp
+from app.routes.settings import settings_bp
 
 
 def create_app() -> Flask:
@@ -21,6 +22,7 @@ def create_app() -> Flask:
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(tickets_bp)
+    app.register_blueprint(settings_bp)
 
     @app.route("/")
     def index():

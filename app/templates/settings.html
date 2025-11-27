@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Settings - SimpleDesk{% endblock %}
+
+{% block content %}
+<section class="settings-hero">
+  <div>
+    <p class="eyebrow">Version 1.1</p>
+    <h1>Account Settings</h1>
+    <p class="muted">Adjust your SimpleDesk preferences to keep work flowing smoothly.</p>
+  </div>
+</section>
+
+<div class="settings-grid">
+  <aside class="settings-sidebar card">
+    <div class="sidebar-header">
+      <div>
+        <p class="eyebrow">Navigation</p>
+        <h2>Settings</h2>
+      </div>
+    </div>
+    <nav class="settings-nav">
+      {% for section in sections %}
+        <a class="settings-nav-link{% if section.id == active_section %} active{% endif %}" href="#{{ section.id }}">
+          <div class="nav-text">
+            <span class="nav-title">{{ section.title }}</span>
+            <span class="nav-subtitle">{{ section.description }}</span>
+          </div>
+          <span class="pill">{{ loop.index }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <section class="settings-panel card">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h2>Manage your preferences</h2>
+        <p class="muted">Three focused options keep the essentials close: profile details, alerts, and how SimpleDesk looks.</p>
+      </div>
+    </header>
+
+    <div class="settings-list">
+      {% for option in options %}
+        <div class="settings-item" id="{{ option.id }}">
+          <div>
+            <div class="settings-item-title">{{ option.title }}</div>
+            <div class="settings-item-description">{{ option.description }}</div>
+          </div>
+          <button class="btn ghost">{{ option.action }}</button>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
