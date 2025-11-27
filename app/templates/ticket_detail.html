@@ -6,9 +6,9 @@
       <p class="eyebrow">Ticket #{{ ticket.id }}</p>
       <h1>{{ ticket.title }}</h1>
       <div class="ticket-tags">
-        <span class="badge status-{{ ticket.status }}">{{ ticket.status }}</span>
-        <span class="badge priority-{{ ticket.priority }}">Priority: {{ ticket.priority }}</span>
-        <span class="meta-pill">Last updated {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        <span class="badge status-{{ ticket.status }}">{{ ticket.status|capitalize }}</span>
+        <span class="badge priority-{{ ticket.priority }}">Priority: {{ ticket.priority|capitalize }}</span>
+        <span class="meta-pill">Last updated {{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}</span>
       </div>
     </div>
     <div class="page-actions">
@@ -23,7 +23,7 @@
         <div class="card-header">
           <div>
             <h3>Description</h3>
-            <p class="muted">Created {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}{% if ticket.due_date %} • Due {{ ticket.due_date.strftime('%Y-%m-%d') }}{% endif %}</p>
+            <p class="muted">Created {{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}{% if ticket.due_date %} • Due {{ ticket.due_date.strftime('%d/%m/%Y') }}{% endif %}</p>
           </div>
         </div>
         <p class="lead">{{ ticket.description or 'No description provided.' }}</p>
@@ -33,7 +33,7 @@
           <div class="actions compact">
             <select id="status" name="status">
               {% for status in status_options %}
-                <option value="{{ status }}" {% if status == ticket.status %}selected{% endif %}>{{ status }}</option>
+                <option value="{{ status }}" {% if status == ticket.status %}selected{% endif %}>{{ status|capitalize }}</option>
               {% endfor %}
             </select>
             <button type="submit">Update</button>
@@ -51,7 +51,7 @@
           <ul class="comment-list">
             {% for comment in comments %}
               <li class="comment">
-                <div class="comment-meta">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                <div class="comment-meta">{{ comment.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
                 <div class="comment-body">{{ comment.body }}</div>
               </li>
             {% endfor %}
@@ -62,7 +62,7 @@
 
         <form method="post" action="{{ url_for('tickets.add_comment', ticket_id=ticket.id) }}" class="field-stack" style="margin-top: 1rem;">
           <label for="body">Add comment</label>
-          <textarea id="body" name="body" required></textarea>
+          <textarea id="body" name="body" class="no-resize" required></textarea>
           <button type="submit">Post comment</button>
         </form>
       </div>
@@ -73,27 +73,23 @@
         <div class="info-row">
           <div class="info-label">Status</div>
           <div class="info-value">
-            <span class="badge status-{{ ticket.status }}">{{ ticket.status }}</span>
+            <span class="badge status-{{ ticket.status }}">{{ ticket.status|capitalize }}</span>
           </div>
         </div>
         <div class="info-row">
           <div class="info-label">Priority</div>
           <div class="info-value">
-            <span class="badge priority-{{ ticket.priority }}">{{ ticket.priority }}</span>
+            <span class="badge priority-{{ ticket.priority }}">{{ ticket.priority|capitalize }}</span>
           </div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Due date</div>
-          <div class="info-value">{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else 'Not set' }}</div>
         </div>
       </div>
 
       <div class="card timeline-card">
         <h4 class="timeline-title">Timeline</h4>
         <ul class="timeline">
-          <li><span class="timeline-label">Created</span><span class="timeline-value">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</span></li>
-          <li><span class="timeline-label">Updated</span><span class="timeline-value">{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</span></li>
-          <li><span class="timeline-label">Due</span><span class="timeline-value">{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else '—' }}</span></li>
+          <li><span class="timeline-label">Created</span><span class="timeline-value">{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</span></li>
+          <li><span class="timeline-label">Updated</span><span class="timeline-value">{{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}</span></li>
+          <li><span class="timeline-label">Due</span><span class="timeline-value">{{ ticket.due_date.strftime('%d/%m/%Y') if ticket.due_date else '—' }}</span></li>
         </ul>
       </div>
     </div>

@@ -314,6 +314,10 @@ textarea {
   min-height: 140px;
 }
 
+.no-resize {
+  resize: none;
+}
+
 .auth-header {
   margin-bottom: 1.25rem;
 }
