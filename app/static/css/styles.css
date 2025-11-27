@@ -101,15 +101,21 @@ a:hover {
 }
 
 .auth-links a {
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
   color: var(--text);
   font-weight: 600;
+  background: transparent;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.03);
 }
 
 .auth-links a:hover {
-  background: rgba(37, 99, 235, 0.08);
+  background: var(--primary-soft);
   color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.15);
+  text-decoration: none;
 }
 
 .container {
@@ -344,18 +350,6 @@ button.link,
   font-size: 0.95rem;
 }
 
-.settings-link {
-  padding: 0.5rem 0.85rem;
-  border-radius: 10px;
-  font-weight: 700;
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.15);
-}
-
-.settings-link:hover {
-  background: rgba(37, 99, 235, 0.14);
-  text-decoration: none;
-}
 
 .settings-hero {
   display: flex;
