@@ -1,45 +1,68 @@
 {% extends 'base.html' %}
 {% block title %}Tickets{% endblock %}
 {% block content %}
-  <div class="card">
-    <div class="actions">
-      <h1>Tickets</h1>
+  <div class="page-header">
+    <div class="page-heading">
+      <p class="eyebrow">Tickets</p>
+      <h1>Ticket View</h1>
+      <p class="muted">Track every request in one place and jump back into ongoing work.</p>
+    </div>
+    <div class="page-actions">
       <a class="btn" href="{{ url_for('tickets.new_ticket') }}">Create ticket</a>
     </div>
+  </div>
 
-    <form method="get" class="filters">
+  <section class="card filters-card">
+    <div class="filters-header">
       <div>
-        <label>Status
-          <select name="status">
-            <option value="">Any</option>
-            {% for status in status_options %}
-              <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
-            {% endfor %}
-          </select>
-        </label>
+        <h2>Filter tickets</h2>
+        <p class="muted">Narrow results by status, priority, or keywords.</p>
+      </div>
+      <div class="pill">{{ tickets|length }}</div>
+    </div>
+
+    <form method="get" class="filters filters-inline">
+      <div>
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="">Any</option>
+          {% for status in status_options %}
+            <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
       </div>
       <div>
-        <label>Priority
-          <select name="priority">
-            <option value="">Any</option>
-            {% for priority in priority_options %}
-              <option value="{{ priority }}" {% if current_priority == priority %}selected{% endif %}>{{ priority }}</option>
-            {% endfor %}
-          </select>
-        </label>
+        <label for="priority">Priority</label>
+        <select id="priority" name="priority">
+          <option value="">Any</option>
+          {% for priority in priority_options %}
+            <option value="{{ priority }}" {% if current_priority == priority %}selected{% endif %}>{{ priority }}</option>
+          {% endfor %}
+        </select>
       </div>
       <div>
-        <label>Search
-          <input type="text" name="search" value="{{ search_term }}" placeholder="Title or description">
-        </label>
+        <label for="search">Search</label>
+        <input id="search" type="text" name="search" value="{{ search_term }}" placeholder="Title or description">
       </div>
-      <div>
+      <div class="filters-actions">
         <label>&nbsp;</label>
-        <button type="submit">Filter</button>
+        <div class="actions">
+          <button type="submit" class="btn">Filter</button>
+          <a class="btn ghost" href="{{ url_for('tickets.list_tickets') }}">Reset</a>
+        </div>
       </div>
     </form>
+  </section>
 
-    <table class="table">
+  <section class="card table-card">
+    <div class="table-header">
+      <div>
+        <h2>Ticket list</h2>
+        <p class="muted">Click a title to view more details or update status.</p>
+      </div>
+    </div>
+
+    <table class="table ticket-table">
       <thead>
         <tr>
           <th>ID</th>
@@ -53,17 +76,19 @@
       <tbody>
         {% for ticket in tickets %}
           <tr>
-            <td>{{ ticket.id }}</td>
-            <td><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
-            <td>{{ ticket.status }}</td>
-            <td>{{ ticket.priority }}</td>
+            <td><span class="muted">#{{ ticket.id }}</span></td>
+            <td class="ticket-title"><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
+            <td><span class="badge status-{{ ticket.status|lower }}">{{ ticket.status }}</span></td>
+            <td><span class="badge priority-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
             <td>{{ ticket.due_date.strftime('%Y-%m-%d') if ticket.due_date else '-' }}</td>
             <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="6">No tickets found.</td></tr>
+          <tr>
+            <td colspan="6" class="table-empty">No tickets found. Adjust your filters or create a new request.</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-  </div>
+  </section>
 {% endblock %}
