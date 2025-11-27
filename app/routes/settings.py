@@ -27,6 +27,12 @@ SIDEBAR_SECTIONS = [
         "description": "Theme and personalization",
         "endpoint": "settings.view_appearance",
     },
+    {
+        "id": "system",
+        "title": "System",
+        "description": "Automation and maintenance",
+        "endpoint": "settings.view_system",
+    },
 ]
 
 SECTION_CONTENT = {
@@ -46,6 +52,12 @@ SECTION_CONTENT = {
         "panel_title": "Appearance",
         "panel_description": "Fine-tune colors, density, and other visual settings as they're released.",
         "coming_soon_detail": "Theme controls are on the way so you can tailor SimpleDesk to your style.",
+    },
+    "system": {
+        "hero_description": "Set up automations and maintenance windows to keep operations running smoothly.",
+        "panel_title": "System",
+        "panel_description": "Configure automation, uptime controls, and integrations once they're available.",
+        "coming_soon_detail": "We're preparing system management tools to help you automate and maintain SimpleDesk.",
     },
 }
 
@@ -85,6 +97,12 @@ def view_notifications():
 def view_appearance():
     """Render the appearance settings page."""
     return _render_settings_page("appearance")
+
+
+@settings_bp.route("/system", methods=["GET"])
+def view_system():
+    """Render the system settings page."""
+    return _render_settings_page("system")
 
 
 @settings_bp.route("/change-password", methods=["POST"])
