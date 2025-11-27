@@ -378,6 +378,11 @@ button.link,
   background: var(--error);
 }
 
+.auth-flash {
+  width: 100%;
+  max-width: 520px;
+}
+
 .meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
