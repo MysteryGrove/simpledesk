@@ -77,7 +77,7 @@ SECTION_CONTENT = {
     "about": {
         "hero_description": HERO_DESCRIPTION,
         "panel_title": "About SimpleDesk",
-        "panel_description": "See version details, credits, and live service resource usage.",
+        "panel_description": "See version details and credits for this deployment.",
     },
 }
 
