@@ -4,9 +4,11 @@ from __future__ import annotations
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
-from app.db import DATA_DIR, SessionLocal, engine, init_db, rebuild_engine, reset_data_dir
+from app.db import reset_database_state
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
+
+HERO_DESCRIPTION = "Adjust your SimpleDesk preferences to keep work flowing smoothly."
 
 SIDEBAR_SECTIONS = [
     {
@@ -37,24 +39,24 @@ SIDEBAR_SECTIONS = [
 
 SECTION_CONTENT = {
     "account": {
-        "hero_description": "Adjust your SimpleDesk preferences to keep work flowing smoothly.",
-        "panel_title": "Account controls",
+        "hero_description": HERO_DESCRIPTION,
+        "panel_title": "Account",
         "panel_description": "Update your access quickly: change the administrator password or start fresh by resetting the account.",
     },
     "notifications": {
-        "hero_description": "Stay tuned for smarter alerts to keep you and your team in sync.",
+        "hero_description": HERO_DESCRIPTION,
         "panel_title": "Notifications",
         "panel_description": "Configure reminders, alerts, and summaries when they become available.",
         "coming_soon_detail": "We're building granular notification controls so you can choose when and how you're notified.",
     },
     "appearance": {
-        "hero_description": "Personalize your workspace with themes and layout preferences.",
+        "hero_description": HERO_DESCRIPTION,
         "panel_title": "Appearance",
         "panel_description": "Fine-tune colors, density, and other visual settings as they're released.",
         "coming_soon_detail": "Theme controls are on the way so you can tailor SimpleDesk to your style.",
     },
     "system": {
-        "hero_description": "Set up automations and maintenance windows to keep operations running smoothly.",
+        "hero_description": HERO_DESCRIPTION,
         "panel_title": "System",
         "panel_description": "Configure automation, uptime controls, and integrations once they're available.",
         "coming_soon_detail": "We're preparing system management tools to help you automate and maintain SimpleDesk.",
@@ -140,13 +142,8 @@ def reset_account():
         flash("Password did not match. Account was not reset.", "error")
         return redirect(url_for("settings.view_settings"))
 
-    SessionLocal.remove()
-    engine.dispose()
-
-    reset_data_dir()
-    rebuild_engine()
+    reset_database_state()
     reset_credentials()
-    init_db()
     session.clear()
     flash("Account reset. Log in with the default admin/password credentials.", "success")
     return redirect(url_for("auth.login"))
