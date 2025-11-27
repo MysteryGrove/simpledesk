@@ -481,6 +481,11 @@ button.link,
   gap: 1rem;
 }
 
+.settings-item.settings-item-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .settings-item-title {
   font-weight: 700;
   margin-bottom: 0.2rem;
@@ -489,6 +494,37 @@ button.link,
 .settings-item-description {
   color: var(--muted);
   max-width: 560px;
+}
+
+.settings-item-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.settings-item.caution {
+  border-color: rgba(220, 38, 38, 0.25);
+  background: #fff7f5;
+}
+
+.settings-form {
+  width: 100%;
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.settings-form .form-row {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.settings-form label {
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .btn.ghost {

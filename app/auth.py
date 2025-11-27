@@ -2,21 +2,72 @@
 from __future__ import annotations
 
 import os
+import json
 from functools import wraps
 from typing import Any, Callable, TypeVar
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
+from app.db import DATA_DIR
 
 AuthCallable = TypeVar("AuthCallable", bound=Callable[..., Any])
 
 auth_bp = Blueprint("auth", __name__)
 
 
+_CREDENTIALS_FILE = DATA_DIR / "credentials.json"
+
+
+def _load_persisted_credentials() -> tuple[str, str] | None:
+    """Read persisted credentials if they exist and are valid."""
+
+    if not _CREDENTIALS_FILE.exists():
+        return None
+
+    try:
+        data = json.loads(_CREDENTIALS_FILE.read_text())
+    except json.JSONDecodeError:
+        return None
+
+    username = data.get("username")
+    password = data.get("password")
+    if isinstance(username, str) and isinstance(password, str):
+        return username, password
+    return None
+
+
+def _write_credentials(username: str, password: str) -> tuple[str, str]:
+    """Persist credentials to disk and return them."""
+
+    _CREDENTIALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _CREDENTIALS_FILE.write_text(json.dumps({"username": username, "password": password}))
+    return username, password
+
+
 def _credentials() -> tuple[str, str]:
     """Return admin credentials from environment with sensible defaults."""
+    persisted = _load_persisted_credentials()
+    if persisted:
+        return persisted
+
     username = os.environ.get("ADMIN_USERNAME", "admin")
     password = os.environ.get("ADMIN_PASSWORD", "password")
     return username, password
+
+
+def set_password(new_password: str) -> tuple[str, str]:
+    """Persist a new password while retaining the current username."""
+
+    username, _ = _credentials()
+    return _write_credentials(username, new_password)
+
+
+def reset_credentials() -> tuple[str, str]:
+    """Remove persisted credentials and return the defaults."""
+
+    if _CREDENTIALS_FILE.exists():
+        _CREDENTIALS_FILE.unlink()
+    return _credentials()
 
 
 def login_required(view_func: AuthCallable) -> AuthCallable:

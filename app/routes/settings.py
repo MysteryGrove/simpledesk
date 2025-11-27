@@ -1,7 +1,10 @@
 """Settings page routes."""
 from __future__ import annotations
 
-from flask import Blueprint, redirect, render_template, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
+from app.auth import reset_credentials, set_password
+from app.db import DATA_DIR, SessionLocal, init_db, engine
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
@@ -22,30 +25,46 @@ def view_settings():
         {"id": "appearance", "title": "Appearance", "description": "Theme and personalization"},
     ]
 
-    options = [
-        {
-            "id": "account",
-            "title": "Account profile",
-            "description": "Update your name, email, and the details shared with your team.",
-            "action": "Manage",
-        },
-        {
-            "id": "notifications",
-            "title": "Notifications",
-            "description": "Control ticket updates and digest emails so you only get what matters.",
-            "action": "Edit",
-        },
-        {
-            "id": "appearance",
-            "title": "Appearance",
-            "description": "Choose the interface theme and adjust readability preferences.",
-            "action": "Customize",
-        },
-    ]
-
     return render_template(
         "settings.html",
         sections=sidebar_sections,
-        options=options,
         active_section="account",
     )
+
+
+@settings_bp.route("/change-password", methods=["POST"])
+def change_password():
+    """Handle password updates from the settings page."""
+
+    new_password = request.form.get("new_password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    if not new_password or not confirm_password:
+        flash("Both password fields are required.", "error")
+        return redirect(url_for("settings.view_settings"))
+
+    if new_password != confirm_password:
+        flash("Passwords must match.", "error")
+        return redirect(url_for("settings.view_settings"))
+
+    set_password(new_password)
+    flash("Password updated successfully.", "success")
+    return redirect(url_for("settings.view_settings"))
+
+
+@settings_bp.route("/reset-account", methods=["POST"])
+def reset_account():
+    """Reset the account by wiping data and credentials."""
+
+    SessionLocal.remove()
+    engine.dispose()
+
+    db_path = DATA_DIR / "helpdesk.db"
+    if db_path.exists():
+        db_path.unlink()
+
+    reset_credentials()
+    init_db()
+    session.clear()
+    flash("Account reset. Log in with the default admin/password credentials.", "success")
+    return redirect(url_for("auth.login"))
