@@ -1,6 +1,8 @@
 """Database setup utilities for the helpdesk application."""
 from __future__ import annotations
 
+import os
+import shutil
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -8,8 +10,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Session, declarative_ba
 
 # Base directory of the project (one level above this file's directory)
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
 DATABASE_URL = f"sqlite:///{DATA_DIR / 'helpdesk.db'}"
 
 # SQLAlchemy base and engine configuration
@@ -30,56 +31,36 @@ def get_session() -> Session:
 
 def init_db() -> None:
     """Initialize database tables."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     # Import models to register them with SQLAlchemy's metadata
     import app.models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 
-    _seed_sample_data()
+
+def reset_data_dir() -> None:
+    """Remove all stored application data and recreate directories."""
+
+    if DATA_DIR.exists():
+        for path in DATA_DIR.iterdir():
+            if path.is_file() or path.is_symlink():
+                try:
+                    path.unlink()
+                except FileNotFoundError:
+                    pass
+            else:
+                shutil.rmtree(path)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def _seed_sample_data() -> None:
-    """Populate the database with starter tickets if it's empty."""
+def rebuild_engine() -> None:
+    """Recreate the database engine and rebind sessions to it."""
 
-    from app.models import Ticket
-
-    session = SessionLocal()
-
-    try:
-        if session.query(Ticket).count() > 0:
-            return
-
-        session.add_all(
-            [
-                Ticket(
-                    title="VPN connection is timing out",
-                    description=(
-                        "Remote staff report frequent disconnects when joining the VPN. "
-                        "Investigate gateway logs and connection limits."
-                    ),
-                    status="open",
-                    priority="urgent",
-                ),
-                Ticket(
-                    title="Email digest is missing project updates",
-                    description=(
-                        "The daily digest stopped including tasks from the Project Phoenix board. "
-                        "Check notification rules and integrations."
-                    ),
-                    status="open",
-                    priority="medium",
-                ),
-                Ticket(
-                    title="New hire access checklist",
-                    description=(
-                        "Provision accounts for the incoming customer success manager, including CRM, "
-                        "analytics, and support tools."
-                    ),
-                    status="closed",
-                    priority="low",
-                ),
-            ]
-        )
-        session.commit()
-    finally:
-        session.close()
+    global engine
+    SessionLocal.remove()
+    engine.dispose()
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+    )
+    SessionLocal.configure(bind=engine)

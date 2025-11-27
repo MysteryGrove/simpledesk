@@ -7,13 +7,13 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  {% set is_login = request.endpoint == 'auth.login' %}
-  <header class="topbar{% if is_login %} topbar-compact{% endif %}">
+  {% set is_auth_page = request.endpoint in ['auth.login', 'auth.force_password_change'] %}
+  <header class="topbar{% if is_auth_page %} topbar-compact{% endif %}">
     <div class="brand">
       <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo" class="brand-mark">
       <span class="brand-text">SimpleDesk</span>
     </div>
-    {% if not is_login %}
+    {% if not is_auth_page %}
     <nav class="nav-links topbar-nav">
       <a href="{{ url_for('tickets.list_tickets') }}">All tickets</a>
       <a href="{{ url_for('tickets.list_tickets') }}?status=open">Open tickets</a>
@@ -30,7 +30,7 @@
     {% endif %}
   </header>
 
-  <main class="container{% if is_login %} auth-page{% endif %}">
+  <main class="container{% if is_auth_page %} auth-page{% endif %}">
     {% block flash_messages %}
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

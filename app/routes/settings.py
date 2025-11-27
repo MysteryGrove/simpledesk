@@ -4,7 +4,7 @@ from __future__ import annotations
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
-from app.db import DATA_DIR, SessionLocal, init_db, engine
+from app.db import DATA_DIR, SessionLocal, engine, init_db, rebuild_engine, reset_data_dir
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
@@ -121,6 +121,7 @@ def change_password():
         return redirect(url_for("settings.view_settings"))
 
     set_password(new_password)
+    session.pop("pending_password_change", None)
     flash("Password updated successfully.", "success")
     return redirect(url_for("settings.view_settings"))
 
@@ -142,10 +143,8 @@ def reset_account():
     SessionLocal.remove()
     engine.dispose()
 
-    db_path = DATA_DIR / "helpdesk.db"
-    if db_path.exists():
-        db_path.unlink()
-
+    reset_data_dir()
+    rebuild_engine()
     reset_credentials()
     init_db()
     session.clear()
