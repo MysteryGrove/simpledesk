@@ -160,6 +160,12 @@ h1, h2, h3 {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
 }
 
+.version-label {
+  font-size: 0.85rem;
+  color: #111827;
+  margin: -0.25rem 0 0;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
