@@ -1,7 +1,14 @@
 """Settings page routes."""
 from __future__ import annotations
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+import os
+
+try:
+    import resource
+except ImportError:  # pragma: no cover - platform-specific
+    resource = None  # type: ignore[assignment]
+
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
 from app.db import reset_database_state
@@ -122,6 +129,70 @@ def view_system():
 def view_about():
     """Render the about settings page."""
     return _render_settings_page("about")
+
+
+@settings_bp.route("/stats", methods=["GET"])
+def service_stats():
+    """Return live CPU and memory usage for the SimpleDesk service."""
+
+    cpu_percent = _get_cpu_percent()
+    memory_mb = _get_memory_usage_mb()
+
+    return jsonify({
+        "cpu_percent": round(cpu_percent, 2),
+        "memory_mb": round(memory_mb, 2),
+    })
+
+
+def _get_cpu_percent() -> float:
+    """Return process CPU usage percentage using psutil when available."""
+
+    try:
+        import psutil  # type: ignore
+    except ImportError:
+        return _fallback_cpu_percent()
+
+    process = psutil.Process()
+    return process.cpu_percent(interval=0.1)
+
+
+def _get_memory_usage_mb() -> float:
+    """Return process memory usage in MB using psutil when available."""
+
+    try:
+        import psutil  # type: ignore
+    except ImportError:
+        return _fallback_memory_usage_mb()
+
+    process = psutil.Process()
+    return process.memory_info().rss / (1024 * 1024)
+
+
+def _fallback_cpu_percent() -> float:
+    """Estimate CPU usage without psutil using system load averages."""
+
+    try:
+        load_avg = os.getloadavg()[0]
+    except (OSError, ValueError, AttributeError):  # pragma: no cover - platform-specific
+        return 0.0
+
+    cpu_count = os.cpu_count() or 1
+    return max(0.0, (load_avg / cpu_count) * 100)
+
+
+def _fallback_memory_usage_mb() -> float:
+    """Estimate memory usage without psutil using resource module data."""
+
+    if resource is None:
+        return 0.0
+
+    try:
+        usage = resource.getrusage(resource.RUSAGE_SELF)
+    except (AttributeError, ValueError):  # pragma: no cover - platform-specific
+        return 0.0
+
+    rss_kb = getattr(usage, "ru_maxrss", 0) or 0
+    return max(0.0, rss_kb / 1024)
 
 
 @settings_bp.route("/change-password", methods=["POST"])
