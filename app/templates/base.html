@@ -14,19 +14,17 @@
       <span class="brand-text">SimpleDesk</span>
     </div>
     {% if not is_login %}
-    <div class="topbar-actions">
-      <nav class="nav-links">
-        <a href="{{ url_for('tickets.list_tickets') }}">All tickets</a>
-        <a href="{{ url_for('tickets.list_tickets') }}?status=open">Open tickets</a>
-        <a href="{{ url_for('tickets.new_ticket') }}" class="button">New ticket</a>
-      </nav>
-      <div class="auth-links">
-        {% if session.get('user_authenticated') %}
-          <a href="{{ url_for('auth.logout') }}">Logout</a>
-        {% else %}
-          <a href="{{ url_for('auth.login') }}">Login</a>
-        {% endif %}
-      </div>
+    <nav class="nav-links topbar-nav">
+      <a href="{{ url_for('tickets.list_tickets') }}">All tickets</a>
+      <a href="{{ url_for('tickets.list_tickets') }}?status=open">Open tickets</a>
+      <a href="{{ url_for('tickets.new_ticket') }}" class="button">New ticket</a>
+    </nav>
+    <div class="auth-links">
+      {% if session.get('user_authenticated') %}
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+      {% endif %}
     </div>
     {% endif %}
   </header>

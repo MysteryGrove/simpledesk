@@ -4,10 +4,12 @@
   --text: #1f2933;
   --muted: #6b7280;
   --primary: #2563eb;
+  --primary-soft: #eef2ff;
   --success: #d1fae5;
   --error: #fee2e2;
   --card: #ffffff;
   --border: #e5e7eb;
+  --shadow: 0 10px 30px rgba(37, 99, 235, 0.06);
 }
 
 * {
@@ -32,50 +34,81 @@ a:hover {
 }
 
 .topbar {
-  background: var(--card);
+  background: linear-gradient(90deg, #ffffff 0%, #f9fbff 100%);
   border-bottom: 1px solid var(--border);
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: var(--shadow);
 }
 
 .topbar-compact {
+  grid-template-columns: auto;
   justify-content: flex-start;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  font-size: 1.05rem;
+  gap: 0.6rem;
+  font-weight: 800;
+  font-size: 1.1rem;
   color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .brand-mark {
-  height: 32px;
+  height: 34px;
   width: auto;
   display: block;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.08));
 }
 
-.nav-links {
+.topbar-nav {
   display: flex;
-  gap: 0.75rem;
+  justify-content: center;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .nav-links a {
-  padding: 0.45rem 0.65rem;
-  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
   color: var(--text);
+  font-weight: 600;
+  background: transparent;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.03);
 }
 
 .nav-links a:hover {
-  background: #eef2ff;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.15);
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.auth-links a {
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.auth-links a:hover {
+  background: rgba(37, 99, 235, 0.08);
   color: var(--primary);
 }
 
@@ -218,6 +251,7 @@ textarea {
   height: 46px;
 }
 
+.button,
 button,
 .btn {
   display: inline-block;
@@ -231,6 +265,7 @@ button,
   text-decoration: none;
 }
 
+.button:hover,
 button:hover,
 .btn:hover {
   filter: brightness(0.95);
