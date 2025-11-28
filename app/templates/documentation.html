@@ -8,11 +8,6 @@
       <h1>Documentation</h1>
       <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
-    <div class="page-actions" id="docGlobalActions">
-      <button class="btn ghost" id="globalNewPageBtn">New page</button>
-      <button class="btn ghost" id="globalPreviewBtn">Preview</button>
-      <button class="btn" id="globalSaveBtn">Save</button>
-    </div>
   </div>
 
   <div class="documentation-layout">
@@ -102,10 +97,6 @@
   const addSectionBtn = document.getElementById('addSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
-  const globalActions = document.getElementById('docGlobalActions');
-  const globalNewPageBtn = document.getElementById('globalNewPageBtn');
-  const globalSaveBtn = document.getElementById('globalSaveBtn');
-  const globalPreviewBtn = document.getElementById('globalPreviewBtn');
   const savePageBtn = document.getElementById('savePageBtn');
   const previewPageBtn = document.getElementById('previewPageBtn');
   const moreActionsBtn = document.getElementById('moreActionsBtn');
@@ -604,20 +595,10 @@
   });
 
   savePageBtn.addEventListener('click', saveCurrentPage);
-  globalSaveBtn.addEventListener('click', saveCurrentPage);
   previewPageBtn.addEventListener('click', previewCurrentPage);
-  globalPreviewBtn.addEventListener('click', previewCurrentPage);
 
   moreActionsBtn.addEventListener('click', () => {
     showToast('Delete and duplicate page options available in the menu.');
-  });
-
-  globalNewPageBtn.addEventListener('click', () => {
-    if (!docState.selection.subsectionId) {
-      showToast('Create a section and subsection first.');
-      return;
-    }
-    startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
   });
 
   headingSelect.addEventListener('change', (event) => {
