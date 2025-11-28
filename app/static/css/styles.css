@@ -1159,6 +1159,8 @@ button.link,
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.55rem;
+  color: var(--text);
+  font-weight: 700;
   cursor: pointer;
 }
 
