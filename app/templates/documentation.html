@@ -106,6 +106,65 @@
     return idCounter++;
   }
 
+  function seedDemoData() {
+    if (docState.sections.length) return;
+    const now = new Date();
+
+    const policiesSection = {
+      id: nextId(),
+      title: 'Policies',
+      subsections: [
+        {
+          id: nextId(),
+          title: 'Onboarding',
+          pages: [
+            {
+              id: nextId(),
+              title: 'Laptop setup',
+              content: '<p>Plug in your device, connect to Wi‑Fi, and sign in with your company email.</p><p>Install the VPN, password manager, and chat client before your first day.</p>',
+              lastUpdated: now,
+              author: 'People Ops',
+            },
+            {
+              id: nextId(),
+              title: 'Security basics',
+              content: '<p>Keep your laptop locked when away from your desk and enable auto‑updates.</p><ul><li>Use MFA everywhere</li><li>Report suspicious emails</li><li>Store secrets only in the vault</li></ul>',
+              lastUpdated: now,
+              author: 'IT',
+            },
+          ],
+        },
+      ],
+    };
+
+    const runbooksSection = {
+      id: nextId(),
+      title: 'Runbooks',
+      subsections: [
+        {
+          id: nextId(),
+          title: 'Support',
+          pages: [
+            {
+              id: nextId(),
+              title: 'Reset password flow',
+              content: '<p>Verify the user, generate a reset link, and confirm successful login.</p><ol><li>Search for the user in admin.</li><li>Send the reset email.</li><li>Document the case.</li></ol>',
+              lastUpdated: now,
+              author: 'CX',
+            },
+          ],
+        },
+      ],
+    };
+
+    docState.sections = [policiesSection, runbooksSection];
+    docState.selection = {
+      sectionId: policiesSection.id,
+      subsectionId: policiesSection.subsections[0].id,
+      pageId: policiesSection.subsections[0].pages[0].id,
+    };
+  }
+
   function showToast(message) {
     toast.textContent = message;
     toast.classList.remove('hidden');
@@ -601,6 +660,8 @@
     }
     alert(`Preview: ${page.title}\n\n${docBodyInput.innerText.slice(0, 240)}...`);
   }
+
+  seedDemoData();
 
   addSectionBtn.addEventListener('click', startCreateSection);
   saveSectionBtn.addEventListener('click', () => createSection(newSectionInput.value));
