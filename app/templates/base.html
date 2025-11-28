@@ -6,18 +6,22 @@
   <title>{% block title %}Helpdesk{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
+{% set nav_location = session.get('nav_location', 'top') %}
+<body class="nav-{{ nav_location }}">
   {% set is_auth_page = request.endpoint in ['auth.login', 'auth.force_password_change'] %}
+  {% set use_sidebar_nav = nav_location == 'sidebar' and not is_auth_page %}
   <header class="topbar{% if is_auth_page %} topbar-compact{% endif %}">
     <div class="brand">
       <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo" class="brand-mark">
       <span class="brand-text">SimpleDesk</span>
     </div>
     {% if not is_auth_page %}
+    {% if nav_location != 'sidebar' %}
     <nav class="nav-links topbar-nav">
       <a href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
       <a href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
     </nav>
+    {% endif %}
     <div class="auth-links">
       {% if session.get('user_authenticated') %}
         <a href="{{ url_for('settings.view_settings') }}">Settings</a>
@@ -29,6 +33,7 @@
     {% endif %}
   </header>
 
+  {% block page_content %}
   <main class="container{% if is_auth_page %} auth-page{% endif %}">
     {% block flash_messages %}
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -44,5 +49,23 @@
 
     {% block content %}{% endblock %}
   </main>
+  {% endblock %}
+
+  {% if use_sidebar_nav %}
+    <div class="layout-shell">
+      <aside class="side-navigation card">
+        <p class="eyebrow">Navigation</p>
+        <nav class="nav-links sidebar-nav">
+          <a class="sidebar-link{% if request.endpoint == 'tickets.list_tickets' %} active{% endif %}" href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
+          <a class="sidebar-link{% if request.endpoint == 'documentation.view_documentation' %} active{% endif %}" href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
+        </nav>
+      </aside>
+      <div class="layout-main">
+        {{ self.page_content() }}
+      </div>
+    </div>
+  {% else %}
+    {{ self.page_content() }}
+  {% endif %}
 </body>
 </html>
