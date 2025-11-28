@@ -101,6 +101,7 @@ def _render_settings_page(active_section: str):
         sections=SIDEBAR_SECTIONS,
         active_section=active_section,
         section_content=section_content,
+        nav_location=session.get("nav_location", "top"),
     )
 
 
@@ -120,6 +121,20 @@ def view_notifications():
 def view_appearance():
     """Render the appearance settings page."""
     return _render_settings_page("appearance")
+
+
+@settings_bp.route("/appearance/navigation", methods=["POST"])
+def update_navigation_location():
+    """Update where the primary navigation bar is placed."""
+
+    nav_location = request.form.get("nav_location", "").strip().lower()
+    if nav_location not in {"top", "sidebar"}:
+        flash("Choose a valid navigation location.", "error")
+        return redirect(url_for("settings.view_appearance"))
+
+    session["nav_location"] = nav_location
+    flash("Navigation bar location updated.", "success")
+    return redirect(url_for("settings.view_appearance"))
 
 
 @settings_bp.route("/system", methods=["GET"])

@@ -156,6 +156,29 @@
           setInterval(updateStats, 5000);
         })();
       </script>
+    {% elif active_section == 'appearance' %}
+      <div class="settings-list">
+        <div class="settings-item settings-item-vertical" id="navigation-preference">
+          <div class="settings-item-header">
+            <div class="settings-item-title">Navigation bar location</div>
+            <div class="settings-item-description">Choose where the primary navigation buttons live.</div>
+          </div>
+          <form method="post" action="{{ url_for('settings.update_navigation_location') }}" class="settings-form">
+            <div class="form-row">
+              <label for="nav_location">Navigation bar location</label>
+              <div class="select-wrapper">
+                <select id="nav_location" name="nav_location">
+                  <option value="top"{% if nav_location == 'top' %} selected{% endif %}>Top (Default)</option>
+                  <option value="sidebar"{% if nav_location == 'sidebar' %} selected{% endif %}>Sidebar</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn">Save preference</button>
+            </div>
+          </form>
+        </div>
+      </div>
     {% else %}
       <div class="settings-empty card">
         <div class="empty-icon">✨</div>

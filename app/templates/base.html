@@ -6,18 +6,22 @@
   <title>{% block title %}Helpdesk{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
+{% set nav_location = session.get('nav_location', 'top') %}
+<body class="nav-{{ nav_location }}">
   {% set is_auth_page = request.endpoint in ['auth.login', 'auth.force_password_change'] %}
+  {% set use_sidebar_nav = nav_location == 'sidebar' and not is_auth_page %}
   <header class="topbar{% if is_auth_page %} topbar-compact{% endif %}">
     <div class="brand">
       <img src="{{ url_for('static', filename='img/simpledesk-logo.svg') }}" alt="SimpleDesk logo" class="brand-mark">
       <span class="brand-text">SimpleDesk</span>
     </div>
     {% if not is_auth_page %}
+    {% if nav_location != 'sidebar' %}
     <nav class="nav-links topbar-nav">
       <a href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
       <a href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
     </nav>
+    {% endif %}
     <div class="auth-links">
       {% if session.get('user_authenticated') %}
         <a href="{{ url_for('settings.view_settings') }}">Settings</a>
@@ -29,20 +33,52 @@
     {% endif %}
   </header>
 
-  <main class="container{% if is_auth_page %} auth-page{% endif %}">
-    {% block flash_messages %}
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="flash-container">
-            {% for category, message in messages %}
-              <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-    {% endblock %}
+  {% block page_content %}
+    {% set flash_section %}
+      {% block flash_messages %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-container">
+              {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      {% endblock %}
+    {% endset %}
 
-    {% block content %}{% endblock %}
-  </main>
+    {% set page_body %}
+      {% block content %}{% endblock %}
+    {% endset %}
+
+    {% if use_sidebar_nav %}
+      <div class="layout-shell">
+        <aside class="side-navigation card">
+          <nav class="nav-links sidebar-nav">
+            <a class="sidebar-link{% if request.endpoint == 'tickets.list_tickets' %} active{% endif %}" href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
+            <a class="sidebar-link{% if request.endpoint == 'documentation.view_documentation' %} active{% endif %}" href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
+            {% if session.get('user_authenticated') %}
+            <a class="sidebar-link{% if request.endpoint == 'settings.view_settings' %} active{% endif %}" href="{{ url_for('settings.view_settings') }}">Settings</a>
+            <a class="sidebar-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            {% else %}
+            <a class="sidebar-link{% if request.endpoint == 'auth.login' %} active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+            {% endif %}
+          </nav>
+        </aside>
+        <div class="layout-main">
+          <main class="container{% if is_auth_page %} auth-page{% endif %}">
+            {{ flash_section | safe }}
+            {{ page_body | safe }}
+          </main>
+        </div>
+      </div>
+    {% else %}
+      <main class="container{% if is_auth_page %} auth-page{% endif %}">
+        {{ flash_section | safe }}
+        {{ page_body | safe }}
+      </main>
+    {% endif %}
+  {% endblock %}
 </body>
 </html>
