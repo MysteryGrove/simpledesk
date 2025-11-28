@@ -16,6 +16,7 @@
     {% if not is_auth_page %}
     <nav class="nav-links topbar-nav">
       <a href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
+      <a href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
     </nav>
     <div class="auth-links">
       {% if session.get('user_authenticated') %}
