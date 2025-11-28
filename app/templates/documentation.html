@@ -8,11 +8,6 @@
       <h1>Documentation</h1>
       <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
-    <div class="page-actions" id="docGlobalActions">
-      <button class="btn ghost" id="globalNewPageBtn">New page</button>
-      <button class="btn ghost" id="globalPreviewBtn">Preview</button>
-      <button class="btn" id="globalSaveBtn">Save</button>
-    </div>
   </div>
 
   <div class="documentation-layout">
@@ -102,10 +97,6 @@
   const addSectionBtn = document.getElementById('addSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
-  const globalActions = document.getElementById('docGlobalActions');
-  const globalNewPageBtn = document.getElementById('globalNewPageBtn');
-  const globalSaveBtn = document.getElementById('globalSaveBtn');
-  const globalPreviewBtn = document.getElementById('globalPreviewBtn');
   const savePageBtn = document.getElementById('savePageBtn');
   const previewPageBtn = document.getElementById('previewPageBtn');
   const moreActionsBtn = document.getElementById('moreActionsBtn');
@@ -238,12 +229,22 @@
   }
 
   function selectSection(sectionId) {
-    docState.selection = { sectionId, subsectionId: null, pageId: null };
+    const section = findSection(sectionId);
+    const firstSubsection = section?.subsections[0] || null;
+    const firstPage = firstSubsection?.pages[0] || null;
+    docState.selection = {
+      sectionId,
+      subsectionId: firstSubsection ? firstSubsection.id : null,
+      pageId: firstPage ? firstPage.id : null,
+    };
     render();
   }
 
   function selectSubsection(sectionId, subsectionId) {
-    docState.selection = { sectionId, subsectionId, pageId: null };
+    const section = findSection(sectionId);
+    const subsection = findSubsection(section, subsectionId);
+    const firstPage = subsection?.pages[0] || null;
+    docState.selection = { sectionId, subsectionId, pageId: firstPage ? firstPage.id : null };
     render();
   }
 
@@ -254,6 +255,7 @@
 
   function renderNavigation() {
     navList.innerHTML = '';
+    const listsToReveal = [];
     docState.sections.forEach((section) => {
       const sectionRow = document.createElement('div');
       sectionRow.className = `doc-row section-row${docState.selection.sectionId === section.id ? ' active' : ''}`;
@@ -321,6 +323,7 @@
             pageList.appendChild(newPageBtn);
 
             subsectionList.appendChild(pageList);
+            listsToReveal.push(pageList);
           }
         });
 
@@ -335,7 +338,15 @@
         subsectionList.appendChild(newSubsectionBtn);
 
         navList.appendChild(subsectionList);
+        listsToReveal.push(subsectionList);
       }
+    });
+
+    requestAnimationFrame(() => {
+      listsToReveal.forEach((list) => {
+        list.classList.add('expanded');
+        list.style.maxHeight = `${list.scrollHeight}px`;
+      });
     });
 
     if (docState.pendingForm && docState.pendingForm.type === 'section') {
@@ -461,7 +472,6 @@
     const hasSections = docState.sections.length > 0;
 
     if (!hasSections) {
-      globalActions.classList.add('hidden');
       renderEmptyState({
         title: 'No sections yet',
         subtitle: 'Create your first section to start documenting.',
@@ -471,7 +481,28 @@
       return;
     }
 
-    globalActions.classList.remove('hidden');
+    if (!section) {
+      const firstSection = docState.sections[0];
+      docState.selection.sectionId = firstSection.id;
+      docState.selection.subsectionId = firstSection.subsections[0]?.id || null;
+      docState.selection.pageId = firstSection.subsections[0]?.pages[0]?.id || null;
+      render();
+      return;
+    }
+
+    if (!subsection && section.subsections.length > 0) {
+      const firstSubsection = section.subsections[0];
+      docState.selection.subsectionId = firstSubsection.id;
+      docState.selection.pageId = firstSubsection.pages[0]?.id || null;
+      render();
+      return;
+    }
+
+    if (!page && subsection?.pages?.length) {
+      docState.selection.pageId = subsection.pages[0].id;
+      render();
+      return;
+    }
 
     if (section && section.subsections.length === 0) {
       renderEmptyState({
@@ -604,20 +635,10 @@
   });
 
   savePageBtn.addEventListener('click', saveCurrentPage);
-  globalSaveBtn.addEventListener('click', saveCurrentPage);
   previewPageBtn.addEventListener('click', previewCurrentPage);
-  globalPreviewBtn.addEventListener('click', previewCurrentPage);
 
   moreActionsBtn.addEventListener('click', () => {
     showToast('Delete and duplicate page options available in the menu.');
-  });
-
-  globalNewPageBtn.addEventListener('click', () => {
-    if (!docState.selection.subsectionId) {
-      showToast('Create a section and subsection first.');
-      return;
-    }
-    startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
   });
 
   headingSelect.addEventListener('change', (event) => {
