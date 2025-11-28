@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import time
+from pathlib import Path
 
 try:
     import resource
@@ -11,9 +13,10 @@ except ImportError:  # pragma: no cover - platform-specific
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth import reset_credentials, set_password, verify_password
-from app.db import reset_database_state
+from app.db import DATA_DIR, reset_database_state
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
+START_TIME = time.time()
 
 HERO_DESCRIPTION = "Adjust your SimpleDesk preferences to keep work flowing smoothly."
 
@@ -137,10 +140,14 @@ def service_stats():
 
     cpu_percent = _get_cpu_percent()
     memory_mb = _get_memory_usage_mb()
+    uptime = _get_uptime()
+    db_size_mb = _get_db_size_mb()
 
     return jsonify({
         "cpu_percent": round(cpu_percent, 2),
         "memory_mb": round(memory_mb, 2),
+        "uptime": uptime,
+        "db_size_mb": round(db_size_mb, 2),
     })
 
 
@@ -193,6 +200,36 @@ def _fallback_memory_usage_mb() -> float:
 
     rss_kb = getattr(usage, "ru_maxrss", 0) or 0
     return max(0.0, rss_kb / 1024)
+
+
+def _get_uptime() -> str:
+    """Return a human-readable uptime string since the app started."""
+
+    elapsed_seconds = max(0, int(time.time() - START_TIME))
+    days, remainder = divmod(elapsed_seconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    parts: list[str] = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    parts.append(f"{seconds}s")
+
+    return " ".join(parts)
+
+
+def _get_db_size_mb() -> float:
+    """Return the current database file size in megabytes."""
+
+    db_path = Path(DATA_DIR) / "helpdesk.db"
+    if not db_path.exists():
+        return 0.0
+
+    return db_path.stat().st_size / (1024 * 1024)
 
 
 @settings_bp.route("/change-password", methods=["POST"])

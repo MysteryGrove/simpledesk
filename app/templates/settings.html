@@ -112,6 +112,14 @@
               <p class="eyebrow">Memory usage</p>
               <p class="stat-value" id="memory-usage">-- MB</p>
             </div>
+            <div class="stat-block">
+              <p class="eyebrow">Uptime</p>
+              <p class="stat-value" id="uptime">--</p>
+            </div>
+            <div class="stat-block">
+              <p class="eyebrow">Database size</p>
+              <p class="stat-value" id="db-size">-- MB</p>
+            </div>
           </div>
           <p class="muted" id="stats-updated">Fetching latest stats…</p>
         </div>
@@ -124,6 +132,8 @@
           const statsUrl = statsContainer.dataset.statsUrl;
           const cpuEl = document.getElementById('cpu-usage');
           const memoryEl = document.getElementById('memory-usage');
+          const uptimeEl = document.getElementById('uptime');
+          const dbSizeEl = document.getElementById('db-size');
           const updatedEl = document.getElementById('stats-updated');
 
           async function updateStats() {
@@ -133,6 +143,8 @@
               const payload = await response.json();
               cpuEl.textContent = `${payload.cpu_percent}%`;
               memoryEl.textContent = `${payload.memory_mb} MB`;
+              uptimeEl.textContent = payload.uptime;
+              dbSizeEl.textContent = `${payload.db_size_mb} MB`;
               const timestamp = new Date().toLocaleTimeString();
               updatedEl.textContent = `Updated ${timestamp}`;
             } catch (err) {
