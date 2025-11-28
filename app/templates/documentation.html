@@ -2,19 +2,18 @@
 {% block title %}Documentation · SimpleDesk{% endblock %}
 {% block content %}
 <div class="documentation-page">
-    <div class="page-header">
-      <div class="page-heading">
-        <p class="eyebrow">Version 1.4</p>
-        <h1>Documentation</h1>
-        <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
-      </div>
-      <div class="page-actions">
-        <button class="btn ghost hidden" id="globalNewSectionBtn">+ New section</button>
-        <button class="btn ghost" id="globalNewPageBtn">New page</button>
-        <button class="btn ghost" id="globalPreviewBtn">Preview</button>
-        <button class="btn" id="globalSaveBtn">Save</button>
-      </div>
+  <div class="page-header">
+    <div class="page-heading">
+      <p class="eyebrow">Version 1.4</p>
+      <h1>Documentation</h1>
+      <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
+    <div class="page-actions">
+      <button class="btn ghost" id="globalNewPageBtn">New page</button>
+      <button class="btn ghost" id="globalPreviewBtn">Preview</button>
+      <button class="btn" id="globalSaveBtn">Save</button>
+    </div>
+  </div>
 
   <div class="documentation-layout">
     <aside class="doc-nav card">
@@ -104,7 +103,6 @@
   const newSectionForm = document.getElementById('newSectionForm');
   const newSectionInput = document.getElementById('newSectionInput');
   const addSectionBtn = document.getElementById('addSectionBtn');
-  const globalNewSectionBtn = document.getElementById('globalNewSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
   const globalNewPageBtn = document.getElementById('globalNewPageBtn');
@@ -460,36 +458,12 @@
     docBodyInput.innerHTML = page.content || '';
   }
 
-  function renderHeaderActions(section, subsection, page) {
-    globalNewSectionBtn.classList.add('hidden');
-    globalNewPageBtn.classList.add('hidden');
-    globalPreviewBtn.classList.add('hidden');
-    globalSaveBtn.classList.add('hidden');
-
-    if (!section) {
-      globalNewSectionBtn.classList.remove('hidden');
-      return;
-    }
-
-    if (subsection && !page) {
-      globalNewPageBtn.classList.remove('hidden');
-      return;
-    }
-
-    if (page) {
-      globalPreviewBtn.classList.remove('hidden');
-      globalSaveBtn.classList.remove('hidden');
-    }
-  }
-
   function render() {
     renderNavigation();
 
     const section = findSection(docState.selection.sectionId);
     const subsection = findSubsection(section, docState.selection.subsectionId);
     const page = findPage(subsection, docState.selection.pageId);
-
-    renderHeaderActions(section, subsection, page);
 
     if (docState.sections.length === 0) {
       renderEmptyState({
@@ -648,8 +622,6 @@
     }
     startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
   });
-
-  globalNewSectionBtn.addEventListener('click', startCreateSection);
 
   headingSelect.addEventListener('change', (event) => {
     const value = event.target.value;
