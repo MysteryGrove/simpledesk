@@ -1,0 +1,680 @@
+{% extends "base.html" %}
+{% block title %}Documentation · SimpleDesk{% endblock %}
+{% block content %}
+<div class="documentation-page">
+    <div class="page-header">
+      <div class="page-heading">
+        <p class="eyebrow">Version 1.4</p>
+        <h1>Documentation</h1>
+        <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn ghost hidden" id="globalNewSectionBtn">+ New section</button>
+        <button class="btn ghost" id="globalNewPageBtn">New page</button>
+        <button class="btn ghost" id="globalPreviewBtn">Preview</button>
+        <button class="btn" id="globalSaveBtn">Save</button>
+      </div>
+    </div>
+
+  <div class="documentation-layout">
+    <aside class="doc-nav card">
+      <div class="doc-nav-header">
+        <div>
+          <p class="eyebrow">Navigation</p>
+          <h3>Knowledge tree</h3>
+          <p class="muted">Section → Subsection → Page</p>
+        </div>
+        <span class="pill subtle">3-level limit</span>
+      </div>
+      <div id="docNavList" class="doc-tree" aria-label="Documentation navigation"></div>
+      <div id="docNavHint" class="doc-hint muted">Expand a section to see its subsections and pages.</div>
+      <div id="newSectionForm" class="doc-inline-form hidden">
+        <input type="text" id="newSectionInput" placeholder="Section name" aria-label="Section name">
+        <div class="form-actions">
+          <button class="btn" id="saveSectionBtn">Save</button>
+          <button class="btn ghost" id="cancelSectionBtn">Cancel</button>
+        </div>
+      </div>
+      <button class="btn link doc-add" id="addSectionBtn">+ New section</button>
+    </aside>
+
+    <section class="doc-editor card">
+      <div id="docEmptyState" class="doc-empty-state"></div>
+
+      <div id="docEditorPanel" class="doc-editor-panel hidden">
+        <div class="doc-editor-header">
+          <div>
+            <p class="doc-breadcrumb" id="docBreadcrumb"></p>
+            <p class="doc-meta" id="docMeta"></p>
+          </div>
+          <div class="doc-editor-actions">
+            <button class="btn" id="savePageBtn">Save</button>
+            <button class="btn ghost" id="previewPageBtn">Preview</button>
+            <button class="btn ghost" id="moreActionsBtn" aria-label="More page actions">⋯</button>
+          </div>
+        </div>
+
+        <div class="doc-toolbar" role="toolbar" aria-label="Formatting">
+          <select id="headingSelect" aria-label="Font style" class="doc-select">
+            <option value="p">Paragraph</option>
+            <option value="h1">H1</option>
+            <option value="h2">H2</option>
+          </select>
+          <button class="toolbar-btn" data-command="bold" aria-label="Bold">B</button>
+          <button class="toolbar-btn" data-command="italic" aria-label="Italic"><em>I</em></button>
+          <button class="toolbar-btn" data-command="underline" aria-label="Underline"><u>U</u></button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn" data-command="insertUnorderedList" aria-label="Bulleted list">• List</button>
+          <button class="toolbar-btn" data-command="insertOrderedList" aria-label="Numbered list">1. List</button>
+          <button class="toolbar-btn" data-command="formatBlock" data-value="blockquote" aria-label="Quote">“”</button>
+          <span class="toolbar-divider"></span>
+          <button class="toolbar-btn" data-command="createLink" aria-label="Insert link">Link</button>
+          <button class="toolbar-btn" data-command="insertHorizontalRule" aria-label="Insert horizontal rule">HR</button>
+          <button class="toolbar-btn" data-command="formatBlock" data-value="pre" aria-label="Insert code block">Code</button>
+          <div class="toolbar-spacer"></div>
+          <button class="toolbar-btn" data-command="undo" aria-label="Undo">↺</button>
+          <button class="toolbar-btn" data-command="redo" aria-label="Redo">↻</button>
+        </div>
+
+        <input class="doc-title" id="docTitleInput" placeholder="Enter page title" aria-label="Page title">
+        <div id="docBodyInput" class="doc-body" contenteditable="true" aria-label="Page content"></div>
+      </div>
+    </section>
+  </div>
+</div>
+<div id="docToast" class="doc-toast hidden" role="status" aria-live="polite"></div>
+
+<script>
+  const docState = {
+    sections: [],
+    selection: { sectionId: null, subsectionId: null, pageId: null },
+    pendingForm: null,
+  };
+
+  let idCounter = 1;
+
+  const navList = document.getElementById('docNavList');
+  const docEmptyState = document.getElementById('docEmptyState');
+  const docEditorPanel = document.getElementById('docEditorPanel');
+  const docBreadcrumb = document.getElementById('docBreadcrumb');
+  const docMeta = document.getElementById('docMeta');
+  const docTitleInput = document.getElementById('docTitleInput');
+  const docBodyInput = document.getElementById('docBodyInput');
+  const toast = document.getElementById('docToast');
+  const newSectionForm = document.getElementById('newSectionForm');
+  const newSectionInput = document.getElementById('newSectionInput');
+  const addSectionBtn = document.getElementById('addSectionBtn');
+  const globalNewSectionBtn = document.getElementById('globalNewSectionBtn');
+  const saveSectionBtn = document.getElementById('saveSectionBtn');
+  const cancelSectionBtn = document.getElementById('cancelSectionBtn');
+  const globalNewPageBtn = document.getElementById('globalNewPageBtn');
+  const globalSaveBtn = document.getElementById('globalSaveBtn');
+  const globalPreviewBtn = document.getElementById('globalPreviewBtn');
+  const savePageBtn = document.getElementById('savePageBtn');
+  const previewPageBtn = document.getElementById('previewPageBtn');
+  const moreActionsBtn = document.getElementById('moreActionsBtn');
+  const headingSelect = document.getElementById('headingSelect');
+
+  function nextId() {
+    return idCounter++;
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('visible'), 10);
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.classList.add('hidden'), 300);
+    }, 2600);
+  }
+
+  function findSection(sectionId) {
+    return docState.sections.find((section) => section.id === sectionId) || null;
+  }
+
+  function findSubsection(section, subsectionId) {
+    if (!section) return null;
+    return section.subsections.find((subsection) => subsection.id === subsectionId) || null;
+  }
+
+  function findPage(subsection, pageId) {
+    if (!subsection) return null;
+    return subsection.pages.find((page) => page.id === pageId) || null;
+  }
+
+  function clearPendingForm() {
+    docState.pendingForm = null;
+  }
+
+  function startCreateSection() {
+    docState.pendingForm = { type: 'section' };
+    renderNavigation();
+    newSectionInput.focus();
+  }
+
+  function startCreateSubsection(sectionId) {
+    docState.pendingForm = { type: 'subsection', sectionId };
+    renderNavigation();
+  }
+
+  function startCreatePage(sectionId, subsectionId) {
+    docState.pendingForm = { type: 'page', sectionId, subsectionId };
+    renderNavigation();
+  }
+
+  function createSection(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    docState.sections.push({ id: nextId(), title: trimmed, subsections: [] });
+    docState.selection = { sectionId: docState.sections[docState.sections.length - 1].id, subsectionId: null, pageId: null };
+    clearPendingForm();
+    render();
+  }
+
+  function createSubsection(sectionId, name) {
+    const section = findSection(sectionId);
+    if (!section) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    section.subsections.push({ id: nextId(), title: trimmed, pages: [] });
+    docState.selection.subsectionId = section.subsections[section.subsections.length - 1].id;
+    docState.selection.sectionId = sectionId;
+    docState.selection.pageId = null;
+    clearPendingForm();
+    render();
+  }
+
+  function createPage(sectionId, subsectionId, name) {
+    const section = findSection(sectionId);
+    const subsection = findSubsection(section, subsectionId);
+    if (!subsection) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    subsection.pages.push({
+      id: nextId(),
+      title: trimmed || 'Untitled page',
+      content: '<p>Start writing your guide here.</p>',
+      lastUpdated: new Date(),
+      author: 'You',
+    });
+    const newPage = subsection.pages[subsection.pages.length - 1];
+    docState.selection = { sectionId, subsectionId, pageId: newPage.id };
+    clearPendingForm();
+    render();
+  }
+
+  function deleteSection(sectionId) {
+    docState.sections = docState.sections.filter((section) => section.id !== sectionId);
+    if (docState.selection.sectionId === sectionId) {
+      docState.selection = { sectionId: null, subsectionId: null, pageId: null };
+    }
+    render();
+  }
+
+  function deleteSubsection(sectionId, subsectionId) {
+    const section = findSection(sectionId);
+    if (!section) return;
+    section.subsections = section.subsections.filter((subsection) => subsection.id !== subsectionId);
+    if (docState.selection.subsectionId === subsectionId) {
+      docState.selection = { sectionId, subsectionId: null, pageId: null };
+    }
+    render();
+  }
+
+  function deletePage(sectionId, subsectionId, pageId) {
+    const section = findSection(sectionId);
+    const subsection = findSubsection(section, subsectionId);
+    if (!subsection) return;
+    subsection.pages = subsection.pages.filter((page) => page.id !== pageId);
+    if (docState.selection.pageId === pageId) {
+      docState.selection.pageId = null;
+    }
+    render();
+  }
+
+  function renameItem(item, placeholder) {
+    const updated = prompt(`Rename ${placeholder}`, item.title);
+    if (updated && updated.trim()) {
+      item.title = updated.trim();
+      render();
+    }
+  }
+
+  function selectSection(sectionId) {
+    docState.selection = { sectionId, subsectionId: null, pageId: null };
+    render();
+  }
+
+  function selectSubsection(sectionId, subsectionId) {
+    docState.selection = { sectionId, subsectionId, pageId: null };
+    render();
+  }
+
+  function selectPage(sectionId, subsectionId, pageId) {
+    docState.selection = { sectionId, subsectionId, pageId };
+    render();
+  }
+
+  function renderNavigation() {
+    navList.innerHTML = '';
+    docState.sections.forEach((section) => {
+      const sectionRow = document.createElement('div');
+      sectionRow.className = `doc-row section-row${docState.selection.sectionId === section.id ? ' active' : ''}`;
+      sectionRow.innerHTML = `
+        <div class="doc-row-main">
+          <span class="doc-icon folder"></span>
+          <span class="doc-title">${section.title}</span>
+        </div>
+        <div class="doc-row-actions">
+          <button class="doc-menu" data-type="section" data-id="${section.id}" aria-label="Section actions">⋯</button>
+        </div>
+      `;
+      sectionRow.querySelector('.doc-row-main').addEventListener('click', () => selectSection(section.id));
+      sectionRow.querySelector('.doc-menu').addEventListener('click', (event) => handleMenuClick(event, { type: 'section', id: section.id }));
+      navList.appendChild(sectionRow);
+
+      if (docState.selection.sectionId === section.id) {
+        const subsectionList = document.createElement('div');
+        subsectionList.className = 'doc-subsection-list';
+        section.subsections.forEach((subsection) => {
+          const subsectionRow = document.createElement('div');
+          subsectionRow.className = `doc-row subsection-row${docState.selection.subsectionId === subsection.id ? ' active' : ''}`;
+          subsectionRow.innerHTML = `
+            <div class="doc-row-main">
+              <span class="doc-icon subsection"></span>
+              <span class="doc-title">${subsection.title}</span>
+            </div>
+            <div class="doc-row-actions">
+              <button class="doc-menu" data-type="subsection" data-section="${section.id}" data-id="${subsection.id}" aria-label="Subsection actions">⋯</button>
+            </div>
+          `;
+          subsectionRow.querySelector('.doc-row-main').addEventListener('click', () => selectSubsection(section.id, subsection.id));
+          subsectionRow.querySelector('.doc-menu').addEventListener('click', (event) => handleMenuClick(event, { type: 'subsection', id: subsection.id, sectionId: section.id }));
+          subsectionList.appendChild(subsectionRow);
+
+          if (docState.selection.subsectionId === subsection.id) {
+            const pageList = document.createElement('div');
+            pageList.className = 'doc-page-list';
+            subsection.pages.forEach((page) => {
+              const pageRow = document.createElement('div');
+              pageRow.className = `doc-row page-row${docState.selection.pageId === page.id ? ' active' : ''}`;
+              pageRow.innerHTML = `
+                <div class="doc-row-main">
+                  <span class="doc-icon page"></span>
+                  <span class="doc-title">${page.title}</span>
+                </div>
+                <div class="doc-row-actions">
+                  <button class="doc-menu" data-type="page" data-section="${section.id}" data-subsection="${subsection.id}" data-id="${page.id}" aria-label="Page actions">⋯</button>
+                </div>
+              `;
+              pageRow.querySelector('.doc-row-main').addEventListener('click', () => selectPage(section.id, subsection.id, page.id));
+              pageRow.querySelector('.doc-menu').addEventListener('click', (event) => handleMenuClick(event, { type: 'page', id: page.id, sectionId: section.id, subsectionId: subsection.id }));
+              pageList.appendChild(pageRow);
+            });
+
+            if (docState.pendingForm && docState.pendingForm.type === 'page' && docState.pendingForm.subsectionId === subsection.id) {
+              pageList.appendChild(renderInlineForm('page', section.id, subsection.id));
+            }
+
+            const newPageBtn = document.createElement('button');
+            newPageBtn.className = `btn link doc-add nested${docState.selection.subsectionId !== subsection.id ? ' disabled' : ''}`;
+            newPageBtn.textContent = '+ New page';
+            newPageBtn.disabled = docState.selection.subsectionId !== subsection.id;
+            newPageBtn.addEventListener('click', () => startCreatePage(section.id, subsection.id));
+            pageList.appendChild(newPageBtn);
+
+            subsectionList.appendChild(pageList);
+          }
+        });
+
+        if (docState.pendingForm && docState.pendingForm.type === 'subsection' && docState.pendingForm.sectionId === section.id) {
+          subsectionList.appendChild(renderInlineForm('subsection', section.id));
+        }
+
+        const newSubsectionBtn = document.createElement('button');
+        newSubsectionBtn.className = 'btn link doc-add nested';
+        newSubsectionBtn.textContent = '+ New subsection';
+        newSubsectionBtn.addEventListener('click', () => startCreateSubsection(section.id));
+        subsectionList.appendChild(newSubsectionBtn);
+
+        navList.appendChild(subsectionList);
+      }
+    });
+
+    if (docState.pendingForm && docState.pendingForm.type === 'section') {
+      newSectionForm.classList.remove('hidden');
+    } else {
+      newSectionForm.classList.add('hidden');
+      newSectionInput.value = '';
+    }
+  }
+
+  function renderInlineForm(type, sectionId, subsectionId) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'doc-inline-form';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = type === 'section' ? 'Section name' : type === 'subsection' ? 'Subsection name' : 'Page name';
+    wrapper.appendChild(input);
+
+    const actions = document.createElement('div');
+    actions.className = 'form-actions';
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn';
+    saveBtn.textContent = 'Save';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn ghost';
+    cancelBtn.textContent = 'Cancel';
+
+    actions.append(saveBtn, cancelBtn);
+    wrapper.appendChild(actions);
+
+    saveBtn.addEventListener('click', () => {
+      if (type === 'section') {
+        createSection(input.value);
+      } else if (type === 'subsection') {
+        createSubsection(sectionId, input.value);
+      } else {
+        createPage(sectionId, subsectionId, input.value);
+      }
+    });
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveBtn.click();
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      clearPendingForm();
+      render();
+    });
+
+    setTimeout(() => input.focus(), 50);
+    return wrapper;
+  }
+
+  function formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    const updated = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    const diffMinutes = Math.round((Date.now() - updated.getTime()) / 60000);
+    if (diffMinutes < 1) return 'Updated just now';
+    if (diffMinutes < 60) return `Updated ${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+    const hours = Math.round(diffMinutes / 60);
+    if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`;
+    const days = Math.round(hours / 24);
+    return `Updated ${days} day${days === 1 ? '' : 's'} ago`;
+  }
+
+  function renderEmptyState(state) {
+    docEmptyState.innerHTML = '';
+    docEditorPanel.classList.add('hidden');
+    const container = document.createElement('div');
+    container.className = 'empty-card';
+    const icon = document.createElement('div');
+    icon.className = 'empty-icon';
+    icon.textContent = state.icon;
+    const content = document.createElement('div');
+    content.className = 'empty-content';
+    const title = document.createElement('h3');
+    title.textContent = state.title;
+    const subtitle = document.createElement('p');
+    subtitle.className = 'muted';
+    subtitle.textContent = state.subtitle;
+    const action = document.createElement('button');
+    action.className = 'btn';
+    action.textContent = state.actionLabel;
+    action.addEventListener('click', state.action);
+    content.append(title, subtitle, action);
+    container.append(icon, content);
+    docEmptyState.appendChild(container);
+    docEmptyState.classList.remove('hidden');
+  }
+
+  function renderEditor(page, section, subsection) {
+    if (!page || !section || !subsection) {
+      renderEmptyState({
+        icon: 'ℹ️',
+        title: 'Select a page',
+        subtitle: 'Pick a page from the navigation or create a new one.',
+        actionLabel: 'New page',
+        action: () => {
+          if (!subsection) {
+            showToast('Create a section and subsection first.');
+            return;
+          }
+          startCreatePage(section.id, subsection.id);
+        },
+      });
+      return;
+    }
+
+    docEmptyState.classList.add('hidden');
+    docEditorPanel.classList.remove('hidden');
+
+    docBreadcrumb.textContent = `${section.title} / ${subsection.title} / ${page.title}`;
+    docMeta.textContent = `${formatTimestamp(page.lastUpdated)} · by ${page.author}`;
+    docTitleInput.value = page.title;
+    docBodyInput.innerHTML = page.content || '';
+  }
+
+  function renderHeaderActions(section, subsection, page) {
+    globalNewSectionBtn.classList.add('hidden');
+    globalNewPageBtn.classList.add('hidden');
+    globalPreviewBtn.classList.add('hidden');
+    globalSaveBtn.classList.add('hidden');
+
+    if (!section) {
+      globalNewSectionBtn.classList.remove('hidden');
+      return;
+    }
+
+    if (subsection && !page) {
+      globalNewPageBtn.classList.remove('hidden');
+      return;
+    }
+
+    if (page) {
+      globalPreviewBtn.classList.remove('hidden');
+      globalSaveBtn.classList.remove('hidden');
+    }
+  }
+
+  function render() {
+    renderNavigation();
+
+    const section = findSection(docState.selection.sectionId);
+    const subsection = findSubsection(section, docState.selection.subsectionId);
+    const page = findPage(subsection, docState.selection.pageId);
+
+    renderHeaderActions(section, subsection, page);
+
+    if (docState.sections.length === 0) {
+      renderEmptyState({
+        icon: '📂',
+        title: 'Create your first section to start documenting.',
+        subtitle: 'Sections hold your subsections and pages. Build the tree step by step.',
+        actionLabel: '+ New section',
+        action: startCreateSection,
+      });
+      return;
+    }
+
+    if (section && section.subsections.length === 0) {
+      renderEmptyState({
+        icon: '🗂️',
+        title: 'Add a subsection for this section.',
+        subtitle: 'Subsections keep policies, procedures, and troubleshooting content organized.',
+        actionLabel: '+ New subsection',
+        action: () => startCreateSubsection(section.id),
+      });
+      return;
+    }
+
+    if (subsection && subsection.pages.length === 0) {
+      renderEmptyState({
+        icon: '📄',
+        title: 'Add your first page to this subsection.',
+        subtitle: 'Pages hold the actual documentation for your teams.',
+        actionLabel: '+ New page',
+        action: () => startCreatePage(section.id, subsection.id),
+      });
+      return;
+    }
+
+    renderEditor(page, section, subsection);
+  }
+
+  function handleMenuClick(event, meta) {
+    event.stopPropagation();
+    const { type, id, sectionId, subsectionId } = meta;
+    const actions = {
+      section: [
+        { label: 'Rename', handler: () => renameItem(findSection(id), 'section') },
+        { label: 'Delete', handler: () => deleteSection(id) },
+        { label: 'New subsection', handler: () => startCreateSubsection(id) },
+      ],
+      subsection: [
+        { label: 'Rename', handler: () => renameItem(findSubsection(findSection(sectionId), id), 'subsection') },
+        { label: 'Delete', handler: () => deleteSubsection(sectionId, id) },
+        { label: 'New page', handler: () => startCreatePage(sectionId, id) },
+      ],
+      page: [
+        { label: 'Rename', handler: () => renameItem(findPage(findSubsection(findSection(sectionId), subsectionId), id), 'page') },
+        { label: 'Duplicate page', handler: () => duplicatePage(sectionId, subsectionId, id) },
+        { label: 'Delete', handler: () => deletePage(sectionId, subsectionId, id) },
+      ],
+    };
+
+    const message = actions[type]
+      .map((action, index) => `${index + 1}. ${action.label}`)
+      .join('\n');
+    const choice = prompt(`${type.charAt(0).toUpperCase() + type.slice(1)} actions:\n${message}\nSelect an option by number:`);
+    const selection = Number(choice);
+    if (!Number.isNaN(selection) && selection > 0 && selection <= actions[type].length) {
+      actions[type][selection - 1].handler();
+    }
+  }
+
+  function duplicatePage(sectionId, subsectionId, pageId) {
+    const section = findSection(sectionId);
+    const subsection = findSubsection(section, subsectionId);
+    const page = findPage(subsection, pageId);
+    if (!page) return;
+    const copy = {
+      ...page,
+      id: nextId(),
+      title: `${page.title} (Copy)`,
+      lastUpdated: new Date(),
+    };
+    subsection.pages.push(copy);
+    docState.selection.pageId = copy.id;
+    render();
+  }
+
+  function saveCurrentPage() {
+    const section = findSection(docState.selection.sectionId);
+    const subsection = findSubsection(section, docState.selection.subsectionId);
+    const page = findPage(subsection, docState.selection.pageId);
+    if (!page) {
+      showToast('Select a page to save.');
+      return;
+    }
+    page.title = docTitleInput.value || 'Untitled page';
+    page.content = docBodyInput.innerHTML;
+    page.lastUpdated = new Date();
+    showToast('Page saved.');
+    render();
+  }
+
+  function previewCurrentPage() {
+    const section = findSection(docState.selection.sectionId);
+    const subsection = findSubsection(section, docState.selection.subsectionId);
+    const page = findPage(subsection, docState.selection.pageId);
+    if (!page) {
+      showToast('Select a page to preview.');
+      return;
+    }
+    alert(`Preview: ${page.title}\n\n${docBodyInput.innerText.slice(0, 240)}...`);
+  }
+
+  addSectionBtn.addEventListener('click', startCreateSection);
+  saveSectionBtn.addEventListener('click', () => createSection(newSectionInput.value));
+  cancelSectionBtn.addEventListener('click', () => {
+    clearPendingForm();
+    render();
+  });
+  newSectionInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      saveSectionBtn.click();
+    }
+  });
+
+  docTitleInput.addEventListener('input', () => {
+    const section = findSection(docState.selection.sectionId);
+    const subsection = findSubsection(section, docState.selection.subsectionId);
+    const page = findPage(subsection, docState.selection.pageId);
+    if (page) {
+      page.title = docTitleInput.value;
+      docBreadcrumb.textContent = `${section.title} / ${subsection.title} / ${page.title || 'Untitled page'}`;
+    }
+  });
+
+  docBodyInput.addEventListener('input', () => {
+    const section = findSection(docState.selection.sectionId);
+    const subsection = findSubsection(section, docState.selection.subsectionId);
+    const page = findPage(subsection, docState.selection.pageId);
+    if (page) {
+      page.content = docBodyInput.innerHTML;
+    }
+  });
+
+  savePageBtn.addEventListener('click', saveCurrentPage);
+  globalSaveBtn.addEventListener('click', saveCurrentPage);
+  previewPageBtn.addEventListener('click', previewCurrentPage);
+  globalPreviewBtn.addEventListener('click', previewCurrentPage);
+
+  moreActionsBtn.addEventListener('click', () => {
+    showToast('Delete and duplicate page options available in the menu.');
+  });
+
+  globalNewPageBtn.addEventListener('click', () => {
+    if (!docState.selection.subsectionId) {
+      showToast('Create a section and subsection first.');
+      return;
+    }
+    startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
+  });
+
+  globalNewSectionBtn.addEventListener('click', startCreateSection);
+
+  headingSelect.addEventListener('change', (event) => {
+    const value = event.target.value;
+    document.execCommand('formatBlock', false, value);
+    docBodyInput.focus();
+  });
+
+  document.querySelectorAll('.toolbar-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const command = button.dataset.command;
+      const value = button.dataset.value || null;
+      if (command === 'createLink') {
+        const url = prompt('Enter a URL to link to:');
+        if (url) {
+          document.execCommand(command, false, url);
+        }
+      } else if (command === 'formatBlock' && value) {
+        document.execCommand(command, false, value);
+      } else {
+        document.execCommand(command, false, value);
+      }
+      docBodyInput.focus();
+    });
+  });
+
+  render();
+</script>
+{% endblock %}
