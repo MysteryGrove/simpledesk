@@ -8,7 +8,7 @@
       <h1>Documentation</h1>
       <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
-    <div class="page-actions">
+    <div class="page-actions" id="docGlobalActions">
       <button class="btn ghost" id="globalNewPageBtn">New page</button>
       <button class="btn ghost" id="globalPreviewBtn">Preview</button>
       <button class="btn" id="globalSaveBtn">Save</button>
@@ -105,6 +105,7 @@
   const addSectionBtn = document.getElementById('addSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
+  const globalActions = document.getElementById('docGlobalActions');
   const globalNewPageBtn = document.getElementById('globalNewPageBtn');
   const globalSaveBtn = document.getElementById('globalSaveBtn');
   const globalPreviewBtn = document.getElementById('globalPreviewBtn');
@@ -410,23 +411,18 @@
     docEmptyState.innerHTML = '';
     docEditorPanel.classList.add('hidden');
     const container = document.createElement('div');
-    container.className = 'empty-card';
-    const icon = document.createElement('div');
-    icon.className = 'empty-icon';
-    icon.textContent = state.icon;
-    const content = document.createElement('div');
-    content.className = 'empty-content';
-    const title = document.createElement('h3');
+    container.className = 'doc-empty';
+    const title = document.createElement('p');
+    title.className = 'doc-empty-title';
     title.textContent = state.title;
     const subtitle = document.createElement('p');
-    subtitle.className = 'muted';
+    subtitle.className = 'doc-empty-description';
     subtitle.textContent = state.subtitle;
     const action = document.createElement('button');
     action.className = 'btn';
     action.textContent = state.actionLabel;
     action.addEventListener('click', state.action);
-    content.append(title, subtitle, action);
-    container.append(icon, content);
+    container.append(title, subtitle, action);
     docEmptyState.appendChild(container);
     docEmptyState.classList.remove('hidden');
   }
@@ -465,16 +461,20 @@
     const subsection = findSubsection(section, docState.selection.subsectionId);
     const page = findPage(subsection, docState.selection.pageId);
 
-    if (docState.sections.length === 0) {
+    const hasSections = docState.sections.length > 0;
+
+    if (!hasSections) {
+      globalActions.classList.add('hidden');
       renderEmptyState({
-        icon: '📂',
-        title: 'Create your first section to start documenting.',
-        subtitle: 'Sections hold your subsections and pages. Build the tree step by step.',
+        title: 'No sections yet',
+        subtitle: 'Create your first section to start documenting.',
         actionLabel: '+ New section',
         action: startCreateSection,
       });
       return;
     }
+
+    globalActions.classList.remove('hidden');
 
     if (section && section.subsections.length === 0) {
       renderEmptyState({
