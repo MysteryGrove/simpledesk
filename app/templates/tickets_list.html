@@ -7,50 +7,45 @@
       <h1>Ticket View</h1>
       <p class="muted">Track every request in one place and jump back into ongoing work.</p>
     </div>
-    <div class="page-actions">
-      <a class="btn" href="{{ url_for('tickets.new_ticket') }}">Create ticket</a>
-    </div>
   </div>
 
   <section class="card filters-card">
-    <div class="filters-header">
-      <div>
-        <h2>Filter tickets</h2>
-        <p class="muted">Narrow results by status, priority, or keywords.</p>
+    <div class="filters-split">
+      <form method="get" class="filters filters-inline">
+        <div>
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="">Any</option>
+            {% for status in status_options %}
+              <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="priority">Priority</label>
+          <select id="priority" name="priority">
+            <option value="">Any</option>
+            {% for priority in priority_options %}
+              <option value="{{ priority }}" {% if current_priority == priority %}selected{% endif %}>{{ priority }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="search">Search</label>
+          <input id="search" type="text" name="search" value="{{ search_term }}" placeholder="Title or description">
+        </div>
+        <div class="filters-actions">
+          <label>&nbsp;</label>
+          <div class="actions">
+            <button type="submit" class="btn">Filter</button>
+            <a class="btn ghost" href="{{ url_for('tickets.list_tickets') }}">Reset</a>
+          </div>
+        </div>
+      </form>
+      <div class="filters-cta">
+        <a class="btn" href="{{ url_for('tickets.new_ticket') }}">Create Ticket</a>
       </div>
     </div>
-
-    <form method="get" class="filters filters-inline">
-      <div>
-        <label for="status">Status</label>
-        <select id="status" name="status">
-          <option value="">Any</option>
-          {% for status in status_options %}
-            <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label for="priority">Priority</label>
-        <select id="priority" name="priority">
-          <option value="">Any</option>
-          {% for priority in priority_options %}
-            <option value="{{ priority }}" {% if current_priority == priority %}selected{% endif %}>{{ priority }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label for="search">Search</label>
-        <input id="search" type="text" name="search" value="{{ search_term }}" placeholder="Title or description">
-      </div>
-      <div class="filters-actions">
-        <label>&nbsp;</label>
-        <div class="actions">
-          <button type="submit" class="btn">Filter</button>
-          <a class="btn ghost" href="{{ url_for('tickets.list_tickets') }}">Reset</a>
-        </div>
-      </div>
-    </form>
   </section>
 
   <section class="card table-card">
