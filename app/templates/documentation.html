@@ -68,7 +68,13 @@
         </div>
 
         <input class="doc-title" id="docTitleInput" placeholder="Enter page title" aria-label="Page title">
-        <div id="docBodyInput" class="doc-body" contenteditable="true" aria-label="Page content"></div>
+        <div
+          id="docBodyInput"
+          class="doc-body"
+          contenteditable="true"
+          aria-label="Page content"
+          data-placeholder="Start writing your guide here."
+        ></div>
       </div>
     </section>
   </div>
@@ -80,6 +86,7 @@
     sections: [],
     selection: { sectionId: null, subsectionId: null, pageId: null },
     pendingForm: null,
+    expanded: { sections: new Set(), subsections: new Set() },
   };
 
   let idCounter = 1;
@@ -102,67 +109,13 @@
   const moreActionsBtn = document.getElementById('moreActionsBtn');
   const headingSelect = document.getElementById('headingSelect');
 
+  const subsectionKey = (sectionId, subsectionId) => `${sectionId}-${subsectionId}`;
+  const docPlaceholderText = 'Start writing your guide here.';
+
+  docBodyInput.dataset.placeholder = docPlaceholderText;
+
   function nextId() {
     return idCounter++;
-  }
-
-  function seedDemoData() {
-    if (docState.sections.length) return;
-    const now = new Date();
-
-    const policiesSection = {
-      id: nextId(),
-      title: 'Policies',
-      subsections: [
-        {
-          id: nextId(),
-          title: 'Onboarding',
-          pages: [
-            {
-              id: nextId(),
-              title: 'Laptop setup',
-              content: '<p>Plug in your device, connect to Wi‑Fi, and sign in with your company email.</p><p>Install the VPN, password manager, and chat client before your first day.</p>',
-              lastUpdated: now,
-              author: 'People Ops',
-            },
-            {
-              id: nextId(),
-              title: 'Security basics',
-              content: '<p>Keep your laptop locked when away from your desk and enable auto‑updates.</p><ul><li>Use MFA everywhere</li><li>Report suspicious emails</li><li>Store secrets only in the vault</li></ul>',
-              lastUpdated: now,
-              author: 'IT',
-            },
-          ],
-        },
-      ],
-    };
-
-    const runbooksSection = {
-      id: nextId(),
-      title: 'Runbooks',
-      subsections: [
-        {
-          id: nextId(),
-          title: 'Support',
-          pages: [
-            {
-              id: nextId(),
-              title: 'Reset password flow',
-              content: '<p>Verify the user, generate a reset link, and confirm successful login.</p><ol><li>Search for the user in admin.</li><li>Send the reset email.</li><li>Document the case.</li></ol>',
-              lastUpdated: now,
-              author: 'CX',
-            },
-          ],
-        },
-      ],
-    };
-
-    docState.sections = [policiesSection, runbooksSection];
-    docState.selection = {
-      sectionId: policiesSection.id,
-      subsectionId: policiesSection.subsections[0].id,
-      pageId: policiesSection.subsections[0].pages[0].id,
-    };
   }
 
   function showToast(message) {
@@ -201,19 +154,24 @@
 
   function startCreateSubsection(sectionId) {
     docState.pendingForm = { type: 'subsection', sectionId };
+    docState.expanded.sections.add(sectionId);
     renderNavigation();
   }
 
   function startCreatePage(sectionId, subsectionId) {
     docState.pendingForm = { type: 'page', sectionId, subsectionId };
+    docState.expanded.sections.add(sectionId);
+    docState.expanded.subsections.add(subsectionKey(sectionId, subsectionId));
     renderNavigation();
   }
 
   function createSection(name) {
     const trimmed = name.trim();
     if (!trimmed) return;
-    docState.sections.push({ id: nextId(), title: trimmed, subsections: [] });
-    docState.selection = { sectionId: docState.sections[docState.sections.length - 1].id, subsectionId: null, pageId: null };
+    const newSectionId = nextId();
+    docState.sections.push({ id: newSectionId, title: trimmed, subsections: [] });
+    docState.selection = { sectionId: newSectionId, subsectionId: null, pageId: null };
+    docState.expanded.sections.add(newSectionId);
     clearPendingForm();
     render();
   }
@@ -223,10 +181,13 @@
     if (!section) return;
     const trimmed = name.trim();
     if (!trimmed) return;
-    section.subsections.push({ id: nextId(), title: trimmed, pages: [] });
-    docState.selection.subsectionId = section.subsections[section.subsections.length - 1].id;
+    const newSubsectionId = nextId();
+    section.subsections.push({ id: newSubsectionId, title: trimmed, pages: [] });
+    docState.selection.subsectionId = newSubsectionId;
     docState.selection.sectionId = sectionId;
     docState.selection.pageId = null;
+    docState.expanded.sections.add(sectionId);
+    docState.expanded.subsections.add(subsectionKey(sectionId, newSubsectionId));
     clearPendingForm();
     render();
   }
@@ -240,18 +201,26 @@
     subsection.pages.push({
       id: nextId(),
       title: trimmed || 'Untitled page',
-      content: '<p>Start writing your guide here.</p>',
+      content: '',
       lastUpdated: new Date(),
       author: 'You',
     });
     const newPage = subsection.pages[subsection.pages.length - 1];
     docState.selection = { sectionId, subsectionId, pageId: newPage.id };
+    docState.expanded.sections.add(sectionId);
+    docState.expanded.subsections.add(subsectionKey(sectionId, subsectionId));
     clearPendingForm();
     render();
   }
 
   function deleteSection(sectionId) {
     docState.sections = docState.sections.filter((section) => section.id !== sectionId);
+    docState.expanded.sections.delete(sectionId);
+    Array.from(docState.expanded.subsections).forEach((key) => {
+      if (key.startsWith(`${sectionId}-`)) {
+        docState.expanded.subsections.delete(key);
+      }
+    });
     if (docState.selection.sectionId === sectionId) {
       docState.selection = { sectionId: null, subsectionId: null, pageId: null };
     }
@@ -262,6 +231,7 @@
     const section = findSection(sectionId);
     if (!section) return;
     section.subsections = section.subsections.filter((subsection) => subsection.id !== subsectionId);
+    docState.expanded.subsections.delete(subsectionKey(sectionId, subsectionId));
     if (docState.selection.subsectionId === subsectionId) {
       docState.selection = { sectionId, subsectionId: null, pageId: null };
     }
@@ -288,22 +258,15 @@
   }
 
   function selectSection(sectionId) {
-    const section = findSection(sectionId);
-    const firstSubsection = section?.subsections[0] || null;
-    const firstPage = firstSubsection?.pages[0] || null;
-    docState.selection = {
-      sectionId,
-      subsectionId: firstSubsection ? firstSubsection.id : null,
-      pageId: firstPage ? firstPage.id : null,
-    };
+    docState.expanded.sections.add(sectionId);
+    docState.selection = { sectionId, subsectionId: null, pageId: null };
     render();
   }
 
   function selectSubsection(sectionId, subsectionId) {
-    const section = findSection(sectionId);
-    const subsection = findSubsection(section, subsectionId);
-    const firstPage = subsection?.pages[0] || null;
-    docState.selection = { sectionId, subsectionId, pageId: firstPage ? firstPage.id : null };
+    docState.expanded.sections.add(sectionId);
+    docState.expanded.subsections.add(subsectionKey(sectionId, subsectionId));
+    docState.selection = { sectionId, subsectionId, pageId: null };
     render();
   }
 
@@ -316,10 +279,12 @@
     navList.innerHTML = '';
     const listsToReveal = [];
     docState.sections.forEach((section) => {
+      const isSectionExpanded = docState.expanded.sections.has(section.id);
       const sectionRow = document.createElement('div');
       sectionRow.className = `doc-row section-row${docState.selection.sectionId === section.id ? ' active' : ''}`;
       sectionRow.innerHTML = `
         <div class="doc-row-main">
+          <button class="doc-toggle" aria-label="Toggle ${section.title}" aria-expanded="${isSectionExpanded}">${isSectionExpanded ? '▾' : '▸'}</button>
           <span class="doc-icon folder"></span>
           <span class="doc-title">${section.title}</span>
         </div>
@@ -327,18 +292,29 @@
           <button class="doc-menu" data-type="section" data-id="${section.id}" aria-label="Section actions">⋯</button>
         </div>
       `;
+      sectionRow.querySelector('.doc-toggle').addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (docState.expanded.sections.has(section.id)) {
+          docState.expanded.sections.delete(section.id);
+        } else {
+          docState.expanded.sections.add(section.id);
+        }
+        render();
+      });
       sectionRow.querySelector('.doc-row-main').addEventListener('click', () => selectSection(section.id));
       sectionRow.querySelector('.doc-menu').addEventListener('click', (event) => handleMenuClick(event, { type: 'section', id: section.id }));
       navList.appendChild(sectionRow);
 
-      if (docState.selection.sectionId === section.id) {
+      if (isSectionExpanded) {
         const subsectionList = document.createElement('div');
         subsectionList.className = 'doc-subsection-list';
         section.subsections.forEach((subsection) => {
+          const isSubsectionExpanded = docState.expanded.subsections.has(subsectionKey(section.id, subsection.id));
           const subsectionRow = document.createElement('div');
           subsectionRow.className = `doc-row subsection-row${docState.selection.subsectionId === subsection.id ? ' active' : ''}`;
           subsectionRow.innerHTML = `
             <div class="doc-row-main">
+              <button class="doc-toggle small" aria-label="Toggle ${subsection.title}" aria-expanded="${isSubsectionExpanded}">${isSubsectionExpanded ? '▾' : '▸'}</button>
               <span class="doc-icon subsection"></span>
               <span class="doc-title">${subsection.title}</span>
             </div>
@@ -346,11 +322,21 @@
               <button class="doc-menu" data-type="subsection" data-section="${section.id}" data-id="${subsection.id}" aria-label="Subsection actions">⋯</button>
             </div>
           `;
+          subsectionRow.querySelector('.doc-toggle').addEventListener('click', (event) => {
+            event.stopPropagation();
+            const key = subsectionKey(section.id, subsection.id);
+            if (docState.expanded.subsections.has(key)) {
+              docState.expanded.subsections.delete(key);
+            } else {
+              docState.expanded.subsections.add(key);
+            }
+            render();
+          });
           subsectionRow.querySelector('.doc-row-main').addEventListener('click', () => selectSubsection(section.id, subsection.id));
           subsectionRow.querySelector('.doc-menu').addEventListener('click', (event) => handleMenuClick(event, { type: 'subsection', id: subsection.id, sectionId: section.id }));
           subsectionList.appendChild(subsectionRow);
 
-          if (docState.selection.subsectionId === subsection.id) {
+          if (isSubsectionExpanded) {
             const pageList = document.createElement('div');
             pageList.className = 'doc-page-list';
             subsection.pages.forEach((page) => {
@@ -518,7 +504,9 @@
     docBreadcrumb.textContent = `${section.title} / ${subsection.title} / ${page.title}`;
     docMeta.textContent = `${formatTimestamp(page.lastUpdated)} · by ${page.author}`;
     docTitleInput.value = page.title;
-    docBodyInput.innerHTML = page.content || '';
+    const content = page.content;
+    const shouldShowPlaceholder = !content || content.trim() === `<p>${docPlaceholderText}</p>`;
+    docBodyInput.innerHTML = shouldShowPlaceholder ? '' : content;
   }
 
   function render() {
@@ -541,25 +529,23 @@
     }
 
     if (!section) {
-      const firstSection = docState.sections[0];
-      docState.selection.sectionId = firstSection.id;
-      docState.selection.subsectionId = firstSection.subsections[0]?.id || null;
-      docState.selection.pageId = firstSection.subsections[0]?.pages[0]?.id || null;
-      render();
+      renderEmptyState({
+        title: 'Select a section',
+        subtitle: 'Choose a section from the navigation to view its content or create a new one.',
+        actionLabel: '+ New section',
+        action: startCreateSection,
+      });
       return;
     }
 
     if (!subsection && section.subsections.length > 0) {
-      const firstSubsection = section.subsections[0];
-      docState.selection.subsectionId = firstSubsection.id;
-      docState.selection.pageId = firstSubsection.pages[0]?.id || null;
-      render();
-      return;
-    }
-
-    if (!page && subsection?.pages?.length) {
-      docState.selection.pageId = subsection.pages[0].id;
-      render();
+      renderEmptyState({
+        icon: '🗂️',
+        title: 'Pick a subsection',
+        subtitle: 'Expand a subsection in the navigation to see its pages or add a new one.',
+        actionLabel: '+ New subsection',
+        action: () => startCreateSubsection(section.id),
+      });
       return;
     }
 
@@ -579,6 +565,17 @@
         icon: '📄',
         title: 'Add your first page to this subsection.',
         subtitle: 'Pages hold the actual documentation for your teams.',
+        actionLabel: '+ New page',
+        action: () => startCreatePage(section.id, subsection.id),
+      });
+      return;
+    }
+
+    if (!page && subsection?.pages?.length) {
+      renderEmptyState({
+        icon: '📄',
+        title: 'Select a page',
+        subtitle: 'Choose a page inside this subsection to view or edit it.',
         actionLabel: '+ New page',
         action: () => startCreatePage(section.id, subsection.id),
       });
@@ -660,8 +657,6 @@
     }
     alert(`Preview: ${page.title}\n\n${docBodyInput.innerText.slice(0, 240)}...`);
   }
-
-  seedDemoData();
 
   addSectionBtn.addEventListener('click', startCreateSection);
   saveSectionBtn.addEventListener('click', () => createSection(newSectionInput.value));
