@@ -8,11 +8,6 @@
       <h1>Documentation</h1>
       <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
-    <div class="page-actions" id="docGlobalActions">
-      <button class="btn ghost" id="globalNewPageBtn">New page</button>
-      <button class="btn ghost" id="globalPreviewBtn">Preview</button>
-      <button class="btn" id="globalSaveBtn">Save</button>
-    </div>
   </div>
 
   <div class="documentation-layout">
@@ -102,10 +97,6 @@
   const addSectionBtn = document.getElementById('addSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
-  const globalActions = document.getElementById('docGlobalActions');
-  const globalNewPageBtn = document.getElementById('globalNewPageBtn');
-  const globalSaveBtn = document.getElementById('globalSaveBtn');
-  const globalPreviewBtn = document.getElementById('globalPreviewBtn');
   const savePageBtn = document.getElementById('savePageBtn');
   const previewPageBtn = document.getElementById('previewPageBtn');
   const moreActionsBtn = document.getElementById('moreActionsBtn');
@@ -113,6 +104,65 @@
 
   function nextId() {
     return idCounter++;
+  }
+
+  function seedDemoData() {
+    if (docState.sections.length) return;
+    const now = new Date();
+
+    const policiesSection = {
+      id: nextId(),
+      title: 'Policies',
+      subsections: [
+        {
+          id: nextId(),
+          title: 'Onboarding',
+          pages: [
+            {
+              id: nextId(),
+              title: 'Laptop setup',
+              content: '<p>Plug in your device, connect to Wi‑Fi, and sign in with your company email.</p><p>Install the VPN, password manager, and chat client before your first day.</p>',
+              lastUpdated: now,
+              author: 'People Ops',
+            },
+            {
+              id: nextId(),
+              title: 'Security basics',
+              content: '<p>Keep your laptop locked when away from your desk and enable auto‑updates.</p><ul><li>Use MFA everywhere</li><li>Report suspicious emails</li><li>Store secrets only in the vault</li></ul>',
+              lastUpdated: now,
+              author: 'IT',
+            },
+          ],
+        },
+      ],
+    };
+
+    const runbooksSection = {
+      id: nextId(),
+      title: 'Runbooks',
+      subsections: [
+        {
+          id: nextId(),
+          title: 'Support',
+          pages: [
+            {
+              id: nextId(),
+              title: 'Reset password flow',
+              content: '<p>Verify the user, generate a reset link, and confirm successful login.</p><ol><li>Search for the user in admin.</li><li>Send the reset email.</li><li>Document the case.</li></ol>',
+              lastUpdated: now,
+              author: 'CX',
+            },
+          ],
+        },
+      ],
+    };
+
+    docState.sections = [policiesSection, runbooksSection];
+    docState.selection = {
+      sectionId: policiesSection.id,
+      subsectionId: policiesSection.subsections[0].id,
+      pageId: policiesSection.subsections[0].pages[0].id,
+    };
   }
 
   function showToast(message) {
@@ -238,12 +288,22 @@
   }
 
   function selectSection(sectionId) {
-    docState.selection = { sectionId, subsectionId: null, pageId: null };
+    const section = findSection(sectionId);
+    const firstSubsection = section?.subsections[0] || null;
+    const firstPage = firstSubsection?.pages[0] || null;
+    docState.selection = {
+      sectionId,
+      subsectionId: firstSubsection ? firstSubsection.id : null,
+      pageId: firstPage ? firstPage.id : null,
+    };
     render();
   }
 
   function selectSubsection(sectionId, subsectionId) {
-    docState.selection = { sectionId, subsectionId, pageId: null };
+    const section = findSection(sectionId);
+    const subsection = findSubsection(section, subsectionId);
+    const firstPage = subsection?.pages[0] || null;
+    docState.selection = { sectionId, subsectionId, pageId: firstPage ? firstPage.id : null };
     render();
   }
 
@@ -461,7 +521,6 @@
     const hasSections = docState.sections.length > 0;
 
     if (!hasSections) {
-      globalActions.classList.add('hidden');
       renderEmptyState({
         title: 'No sections yet',
         subtitle: 'Create your first section to start documenting.',
@@ -471,7 +530,28 @@
       return;
     }
 
-    globalActions.classList.remove('hidden');
+    if (!section) {
+      const firstSection = docState.sections[0];
+      docState.selection.sectionId = firstSection.id;
+      docState.selection.subsectionId = firstSection.subsections[0]?.id || null;
+      docState.selection.pageId = firstSection.subsections[0]?.pages[0]?.id || null;
+      render();
+      return;
+    }
+
+    if (!subsection && section.subsections.length > 0) {
+      const firstSubsection = section.subsections[0];
+      docState.selection.subsectionId = firstSubsection.id;
+      docState.selection.pageId = firstSubsection.pages[0]?.id || null;
+      render();
+      return;
+    }
+
+    if (!page && subsection?.pages?.length) {
+      docState.selection.pageId = subsection.pages[0].id;
+      render();
+      return;
+    }
 
     if (section && section.subsections.length === 0) {
       renderEmptyState({
@@ -571,6 +651,8 @@
     alert(`Preview: ${page.title}\n\n${docBodyInput.innerText.slice(0, 240)}...`);
   }
 
+  seedDemoData();
+
   addSectionBtn.addEventListener('click', startCreateSection);
   saveSectionBtn.addEventListener('click', () => createSection(newSectionInput.value));
   cancelSectionBtn.addEventListener('click', () => {
@@ -604,20 +686,10 @@
   });
 
   savePageBtn.addEventListener('click', saveCurrentPage);
-  globalSaveBtn.addEventListener('click', saveCurrentPage);
   previewPageBtn.addEventListener('click', previewCurrentPage);
-  globalPreviewBtn.addEventListener('click', previewCurrentPage);
 
   moreActionsBtn.addEventListener('click', () => {
     showToast('Delete and duplicate page options available in the menu.');
-  });
-
-  globalNewPageBtn.addEventListener('click', () => {
-    if (!docState.selection.subsectionId) {
-      showToast('Create a section and subsection first.');
-      return;
-    }
-    startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
   });
 
   headingSelect.addEventListener('change', (event) => {
