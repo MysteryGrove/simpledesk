@@ -314,6 +314,7 @@
 
   function renderNavigation() {
     navList.innerHTML = '';
+    const listsToReveal = [];
     docState.sections.forEach((section) => {
       const sectionRow = document.createElement('div');
       sectionRow.className = `doc-row section-row${docState.selection.sectionId === section.id ? ' active' : ''}`;
@@ -381,6 +382,7 @@
             pageList.appendChild(newPageBtn);
 
             subsectionList.appendChild(pageList);
+            listsToReveal.push(pageList);
           }
         });
 
@@ -395,7 +397,15 @@
         subsectionList.appendChild(newSubsectionBtn);
 
         navList.appendChild(subsectionList);
+        listsToReveal.push(subsectionList);
       }
+    });
+
+    requestAnimationFrame(() => {
+      listsToReveal.forEach((list) => {
+        list.classList.add('expanded');
+        list.style.maxHeight = `${list.scrollHeight}px`;
+      });
     });
 
     if (docState.pendingForm && docState.pendingForm.type === 'section') {
