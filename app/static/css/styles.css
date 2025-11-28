@@ -1200,17 +1200,7 @@ button.link,
 }
 
 .doc-empty-state {
-  min-height: 560px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.doc-empty-message {
-  display: grid;
-  gap: 0.4rem;
-  max-width: 440px;
+  min-height: 360px;
 }
 
 .doc-toast {
@@ -1233,8 +1223,30 @@ button.link,
   transform: translateY(0);
 }
 
-.doc-empty-message h3 {
-  margin: 0 0 0.25rem;
+.empty-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  background: linear-gradient(90deg, #f8fbff 0%, #eef4ff 100%);
+  border: 1px dashed rgba(37, 99, 235, 0.3);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.empty-content h3 {
+  margin: 0 0 0.35rem;
 }
 
 .doc-editor .btn {

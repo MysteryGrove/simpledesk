@@ -2,19 +2,18 @@
 {% block title %}Documentation · SimpleDesk{% endblock %}
 {% block content %}
 <div class="documentation-page">
-    <div class="page-header">
-      <div class="page-heading">
-        <p class="eyebrow">Version 1.4</p>
-        <h1>Documentation</h1>
-        <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
-      </div>
-      <div class="page-actions">
-        <button class="btn ghost hidden" id="globalNewSectionBtn">+ New section</button>
-        <button class="btn ghost" id="globalNewPageBtn">New page</button>
-        <button class="btn ghost" id="globalPreviewBtn">Preview</button>
-        <button class="btn" id="globalSaveBtn">Save</button>
-      </div>
+  <div class="page-header">
+    <div class="page-heading">
+      <p class="eyebrow">Version 1.4</p>
+      <h1>Documentation</h1>
+      <p class="muted">Organize policies, onboarding steps, troubleshooting guides, and more.</p>
     </div>
+    <div class="page-actions">
+      <button class="btn ghost" id="globalNewPageBtn">New page</button>
+      <button class="btn ghost" id="globalPreviewBtn">Preview</button>
+      <button class="btn" id="globalSaveBtn">Save</button>
+    </div>
+  </div>
 
   <div class="documentation-layout">
     <aside class="doc-nav card">
@@ -104,7 +103,6 @@
   const newSectionForm = document.getElementById('newSectionForm');
   const newSectionInput = document.getElementById('newSectionInput');
   const addSectionBtn = document.getElementById('addSectionBtn');
-  const globalNewSectionBtn = document.getElementById('globalNewSectionBtn');
   const saveSectionBtn = document.getElementById('saveSectionBtn');
   const cancelSectionBtn = document.getElementById('cancelSectionBtn');
   const globalNewPageBtn = document.getElementById('globalNewPageBtn');
@@ -411,25 +409,26 @@
   function renderEmptyState(state) {
     docEmptyState.innerHTML = '';
     docEditorPanel.classList.add('hidden');
-    docEmptyState.classList.remove('hidden');
-
     const container = document.createElement('div');
-    container.className = 'doc-empty-message';
-
+    container.className = 'empty-card';
+    const icon = document.createElement('div');
+    icon.className = 'empty-icon';
+    icon.textContent = state.icon;
+    const content = document.createElement('div');
+    content.className = 'empty-content';
     const title = document.createElement('h3');
     title.textContent = state.title;
-
     const subtitle = document.createElement('p');
     subtitle.className = 'muted';
     subtitle.textContent = state.subtitle;
-
     const action = document.createElement('button');
     action.className = 'btn';
     action.textContent = state.actionLabel;
     action.addEventListener('click', state.action);
-
-    container.append(title, subtitle, action);
+    content.append(title, subtitle, action);
+    container.append(icon, content);
     docEmptyState.appendChild(container);
+    docEmptyState.classList.remove('hidden');
   }
 
   function renderEditor(page, section, subsection) {
@@ -459,28 +458,6 @@
     docBodyInput.innerHTML = page.content || '';
   }
 
-  function renderHeaderActions(section, subsection, page) {
-    globalNewSectionBtn.classList.add('hidden');
-    globalNewPageBtn.classList.add('hidden');
-    globalPreviewBtn.classList.add('hidden');
-    globalSaveBtn.classList.add('hidden');
-
-    if (!section) {
-      globalNewSectionBtn.classList.remove('hidden');
-      return;
-    }
-
-    if (subsection && !page) {
-      globalNewPageBtn.classList.remove('hidden');
-      return;
-    }
-
-    if (page) {
-      globalPreviewBtn.classList.remove('hidden');
-      globalSaveBtn.classList.remove('hidden');
-    }
-  }
-
   function render() {
     renderNavigation();
 
@@ -488,12 +465,11 @@
     const subsection = findSubsection(section, docState.selection.subsectionId);
     const page = findPage(subsection, docState.selection.pageId);
 
-    renderHeaderActions(section, subsection, page);
-
     if (docState.sections.length === 0) {
       renderEmptyState({
-        title: 'No sections yet',
-        subtitle: 'Create your first section to start documenting.',
+        icon: '📂',
+        title: 'Create your first section to start documenting.',
+        subtitle: 'Sections hold your subsections and pages. Build the tree step by step.',
         actionLabel: '+ New section',
         action: startCreateSection,
       });
@@ -646,8 +622,6 @@
     }
     startCreatePage(docState.selection.sectionId, docState.selection.subsectionId);
   });
-
-  globalNewSectionBtn.addEventListener('click', startCreateSection);
 
   headingSelect.addEventListener('change', (event) => {
     const value = event.target.value;
