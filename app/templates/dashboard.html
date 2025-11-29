@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <div class="page-heading">
+      <p class="eyebrow">Dashboard</p>
+      <h1>Hi {{ user_name }}</h1>
+      <p class="muted">Here’s what’s happening in your workspace.</p>
+    </div>
+  </div>
+
+  <section class="dashboard-overview">
+    <div class="card stat-card">
+      <p class="eyebrow">Open tickets</p>
+      <div class="stat-value">{{ summary.open_tickets }}</div>
+      <p class="muted">Updated just now</p>
+    </div>
+    <div class="card stat-card">
+      <p class="eyebrow">Closed this week</p>
+      <div class="stat-value">{{ summary.closed_this_week }}</div>
+      <p class="muted">Updated just now</p>
+    </div>
+    <div class="card stat-card">
+      <p class="eyebrow">Due this week</p>
+      <div class="stat-value">{{ summary.due_this_week }}</div>
+      <p class="muted">Updated just now</p>
+    </div>
+    <div class="card stat-card">
+      <p class="eyebrow">Overdue</p>
+      <div class="stat-value">{{ summary.overdue }}</div>
+      <p class="muted">Updated just now</p>
+    </div>
+  </section>
+
+  <div class="dashboard-grid">
+    <div class="dashboard-column">
+      <section class="card table-card">
+        <div class="table-header">
+          <div>
+            <p class="eyebrow">My work</p>
+            <h2>My tickets</h2>
+            <p class="muted">Your latest assigned tickets.</p>
+          </div>
+          <a class="btn ghost" href="{{ url_for('tickets.list_tickets') }}">View all</a>
+        </div>
+        <table class="table ticket-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in my_tickets %}
+              <tr>
+                <td><span class="muted">#{{ ticket.id }}</span></td>
+                <td class="ticket-title"><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
+                <td><span class="badge status-{{ ticket.status|lower }}">{{ ticket.status }}</span></td>
+                <td>{{ ticket.due_date.strftime('%d/%m/%Y') if ticket.due_date else '-' }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="table-empty">No tickets assigned yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card info-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Planning</p>
+            <h2>Due soon</h2>
+            <p class="muted">Next tickets ordered by due date.</p>
+          </div>
+        </div>
+        <div class="list-stack">
+          {% for ticket in due_soon %}
+            <div class="list-row">
+              <div class="list-text">
+                <a class="list-title" href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a>
+                <p class="muted">Due {{ ticket.due_date.strftime('%d/%m/%Y') }}</p>
+              </div>
+              <div class="list-meta">
+                <span class="badge status-{{ ticket.status|lower }}">{{ ticket.status }}</span>
+                <span class="badge priority-{{ ticket.priority|lower }}">{{ ticket.priority }}</span>
+              </div>
+            </div>
+          {% else %}
+            <p class="muted">No upcoming tickets scheduled.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="dashboard-column">
+      <section class="card timeline-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Updates</p>
+            <h2>Recent activity</h2>
+            <p class="muted">Latest ticket changes and comments.</p>
+          </div>
+        </div>
+        <ul class="timeline">
+          {% for event in activity %}
+            <li>
+              <div>
+                <div class="list-title">[#{{ event.ticket_id }}] {{ event.ticket_title }}</div>
+                <div class="muted">{{ event.action|capitalize }}</div>
+              </div>
+              <div class="timeline-label">{{ event.timestamp.strftime('%d/%m/%Y %H:%M') }}</div>
+            </li>
+          {% else %}
+            <li>
+              <div class="muted">No recent activity yet.</div>
+              <div class="timeline-label">--</div>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Shortcuts</p>
+            <h2>Saved views</h2>
+            <p class="muted">Jump into common filters.</p>
+          </div>
+        </div>
+        <div class="button-stack">
+          <a class="btn" href="{{ url_for('tickets.list_tickets', status='open') }}">My open tickets</a>
+          <a class="btn ghost" href="{{ url_for('tickets.list_tickets', priority='high') }}">High priority</a>
+          <a class="btn ghost" href="{{ url_for('tickets.list_tickets', due='week') }}">Due this week</a>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock %}
