@@ -22,6 +22,7 @@
       <a href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
     </nav>
     {% endif %}
+    {% if nav_location != 'sidebar' %}
     <div class="auth-links">
       {% if session.get('user_authenticated') %}
         <a href="{{ url_for('settings.view_settings') }}">Settings</a>
@@ -30,6 +31,7 @@
         <a href="{{ url_for('auth.login') }}">Login</a>
       {% endif %}
     </div>
+    {% endif %}
     {% endif %}
   </header>
 
