@@ -126,7 +126,7 @@ def view_dashboard():
     ).all()
     due_soon = db_session.scalars(
         select(Ticket)
-        .where(Ticket.due_date.is_not(None))
+        .where(Ticket.due_date.is_not(None), Ticket.status != "closed")
         .order_by(Ticket.due_date.asc())
         .limit(5)
     ).all()
