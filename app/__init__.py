@@ -6,6 +6,7 @@ from flask import Flask, redirect, session, url_for
 
 from app.db import DATABASE_URL, SessionLocal, init_db
 from app.auth import auth_bp
+from app.routes.dashboard import dashboard_bp
 from app.routes.tickets import tickets_bp
 from app.routes.settings import settings_bp
 from app.routes.documentation import documentation_bp
@@ -25,11 +26,12 @@ def create_app() -> Flask:
     app.register_blueprint(tickets_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(documentation_bp)
+    app.register_blueprint(dashboard_bp)
 
     @app.route("/")
     def index():
         if session.get("user_authenticated"):
-            return redirect(url_for("tickets.list_tickets"))
+            return redirect(url_for("dashboard.view_dashboard"))
         return redirect(url_for("auth.login"))
 
     @app.teardown_appcontext

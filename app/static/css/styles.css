@@ -296,6 +296,76 @@ h1, h2, h3 {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
 }
 
+.dashboard-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+}
+
+.stat-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.15fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.dashboard-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.list-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.03) 0%, #fff 100%);
+}
+
+.list-title {
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: var(--text);
+}
+
+.list-text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.list-meta {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.button-stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .table-header {
   display: flex;
   align-items: center;
@@ -1008,6 +1078,10 @@ button.link,
 
   .page-header.ticket-header {
     flex-direction: column;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 

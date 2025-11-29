@@ -18,6 +18,7 @@
     {% if not is_auth_page %}
     {% if nav_location != 'sidebar' %}
     <nav class="nav-links topbar-nav">
+      <a href="{{ url_for('dashboard.view_dashboard') }}">Dashboard</a>
       <a href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
       <a href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
     </nav>
@@ -58,6 +59,7 @@
       <div class="layout-shell">
         <aside class="side-navigation card">
           <nav class="nav-links sidebar-nav">
+            <a class="sidebar-link{% if request.endpoint == 'dashboard.view_dashboard' %} active{% endif %}" href="{{ url_for('dashboard.view_dashboard') }}">Dashboard</a>
             <a class="sidebar-link{% if request.endpoint == 'tickets.list_tickets' %} active{% endif %}" href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
             <a class="sidebar-link{% if request.endpoint == 'documentation.view_documentation' %} active{% endif %}" href="{{ url_for('documentation.view_documentation') }}">Documentation</a>
             {% if session.get('user_authenticated') %}
