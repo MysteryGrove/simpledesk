@@ -1,7 +1,7 @@
 """Ticket-related routes."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from flask import (
@@ -58,6 +58,7 @@ def list_tickets():
     status = request.args.get("status")
     priority = request.args.get("priority")
     search = request.args.get("search")
+    due_filter = request.args.get("due")
 
     if status and status in STATUS_OPTIONS:
         query = query.where(Ticket.status == status)
@@ -68,6 +69,31 @@ def list_tickets():
         query = query.where(
             or_(Ticket.title.ilike(like_expr), Ticket.description.ilike(like_expr))
         )
+
+    if due_filter:
+        now = datetime.utcnow()
+        today_start = datetime.combine(now.date(), datetime.min.time())
+        today_end = datetime.combine(now.date(), datetime.max.time())
+        week_end = now + timedelta(days=7)
+
+        if due_filter == "today":
+            query = query.where(
+                Ticket.due_date.is_not(None),
+                Ticket.due_date >= today_start,
+                Ticket.due_date <= today_end,
+            )
+        elif due_filter == "week":
+            query = query.where(
+                Ticket.due_date.is_not(None),
+                Ticket.due_date > today_end,
+                Ticket.due_date <= week_end,
+            )
+        elif due_filter == "overdue":
+            query = query.where(
+                Ticket.due_date.is_not(None),
+                Ticket.due_date < now,
+                Ticket.status != "closed",
+            )
 
     tickets = session.scalars(query.order_by(Ticket.created_at.desc())).all()
     return render_template(

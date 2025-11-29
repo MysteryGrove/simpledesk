@@ -106,7 +106,7 @@ def login_required(view_func: AuthCallable) -> AuthCallable:
 def login() -> str:
     """Render the login form."""
     if session.get("user_authenticated"):
-        return redirect(url_for("tickets.list_tickets"))
+        return redirect(url_for("dashboard.view_dashboard"))
     return render_template("login.html")
 
 
@@ -120,13 +120,14 @@ def login_post():
     if username == username_env and password == password_env:
         session["user_authenticated"] = True
         session.pop("pending_password_change", None)
+        session["username"] = username
         if _using_default_credentials():
             session["pending_password_change"] = True
             flash("Default credentials detected. Please set a new password to continue.", "warning")
             return redirect(url_for("auth.force_password_change"))
 
         flash("Logged in successfully.", "success")
-        return redirect(url_for("tickets.list_tickets"))
+        return redirect(url_for("dashboard.view_dashboard"))
 
     flash("Invalid username or password.", "error")
     return redirect(url_for("auth.login"))
